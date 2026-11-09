@@ -33,12 +33,15 @@ preserves asserted stable IDs, independent source revision selection, negative
 provenance and explicit unresolved listing joins; it does not establish source
 coverage or complete real-world universes. The local exact-byte raw payload
 archive verifies checksums and publishes without replacement; see
-[ADR 0009](decisions/0009-local-raw-payload-archive.md). It persists only bytes
+[ADR 0009](decisions/0009-local-raw-payload-archive.md). Its payload API persists exact bytes
 under trusted local POSIX filesystem assumptions and makes no crash durability
-claim. These primitives do not
-authenticate evidence or implement persistent raw metadata/quarantine, provider
-ingestion, source revision/identity proof, coverage/completeness reporting, or
-dataset snapshots. All M1 gates remain open pending their complete acceptance
+claim. Raw admission/quarantine receipts now retain exact payload provenance and
+raw claims under a separate digest, with a strict versioned codec and recomputed
+admission on reopen; see
+[ADR 0010](decisions/0010-persisted-raw-admission-receipts.md). This adds raw receipt
+retention, without a quarantine processing workflow or validated metadata catalog.
+These primitives do not authenticate evidence or implement provider ingestion,
+source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.
 
 ## M2 — Backtester and accounting

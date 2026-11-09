@@ -31,9 +31,9 @@ Store immutable raw snapshots separately from normalized curated datasets. Prese
 SHA-256, with verification on put/get and atomic publication without replacement.
 Version helpers use `ObservationVersion.content_sha256`; consumers select eligible
 metadata before fetching, and missing/corrupt selected content fails without
-fallback. Only bytes persist, on a trusted local POSIX filesystem; no crash
-durability, metadata/quarantine persistence, provenance authentication, or dataset
-manifest is provided. See [ADR 0009](decisions/0009-local-raw-payload-archive.md).
+fallback. Payloads persist on a trusted local POSIX filesystem with no crash
+durability or provenance authentication. See
+[ADR 0009](decisions/0009-local-raw-payload-archive.md).
 
 Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred until there is a real need for persistent order state. An experiment must pin code revision, configuration, source snapshot identifiers, seeds, and a complete [execution environment](environment.md). A code revision or seed alone is insufficient for replay.
 
@@ -42,9 +42,18 @@ Data adapters distinguish quarantined raw records from validated availability. H
 `data.admission` implements only the in-memory raw availability boundary: frozen
 source claims produce accepted UTC timestamps or a quarantine result retaining
 the raw envelope and field-specific reasons. Evidence references are adapter
-assertions, not authenticated proof; quarantine has no durable storage. Provider
-ingestion and operational processing remain unimplemented. See
+assertions, not authenticated proof. See
 [ADR 0006](decisions/0006-raw-availability-admission.md).
+
+`data.receipts` binds the raw envelope, exact source URI/license ID and payload
+digest to a frozen admission receipt. `LocalRawArchive` publishes payload first,
+receipt last under a separate receipt digest, and verifies both on reopen. The
+strict versioned codec preserves raw precision, text, timezone key/offset/fold,
+and recomputes the named admission policy. This persists accepted and quarantined
+assertions under ADR 0009's filesystem/failure assumptions; it does not create
+validated observation versions or authenticate evidence. Provider ingestion,
+operational processing, metadata catalogs and dataset manifests remain
+unimplemented. See [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 `data.listings` adds an in-memory source-specific historical listing catalog.
 Complete replacement histories bind stable security IDs to effective-dated
