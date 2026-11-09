@@ -9,9 +9,9 @@ Estimated timing is optional; **gates are evidence-based**. Do not treat checkbo
 - [ ] CI has actually run successfully on GitHub.
 - [ ] Repo protection/rulesets are configured by owner (where available).
 
-The contracts, package, workflow, and timestamp tests are present in the repository. GitHub CI evidence is linked below; independent review/owner acceptance and the protection disposition are still missing. Previous completion marks lacked complete evidence and have been cleared.
+The contracts, package, workflow, and timestamp tests are present in the repository. The owner accepted the M0 technical baseline on 2026-11-09, and an active `main` ruleset is recorded in the evidence below. Previous completion marks lacked complete evidence and have been cleared. CI and independent review for the subsequent hash-verification correction remain pending.
 
-Automated verification now has [immutable M0 evidence and an owner sign-off checklist](m0-evidence.md), including passing Ubuntu/macOS CI and the observed private-repository protection limitation. Review/owner decisions remain open; successful CI alone does not close M0.
+The [M0 evidence record](m0-evidence.md) links historical passing Ubuntu/macOS CI, explains its seed-package hash-verification gap, and records owner acceptance and ruleset 26885025. The correction requires its own immutable revision, successful CI, and independent review; M0 remains current and its gates remain open.
 
 ## M1 — Point-in-time market data
 - [ ] Security master with delisting/history.
