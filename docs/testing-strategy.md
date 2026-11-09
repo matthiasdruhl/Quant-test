@@ -16,7 +16,8 @@ Reference fixtures must be constructed from an external calculation or human-rea
 
 ## Scope of current scaffold
 Timestamp availability, in-memory historical observation-version selection, raw
-admission/quarantine results, and historical listing lookup have implemented test
+admission/quarantine results, historical listing lookup, and universe membership/
+listing joins have implemented test
 suites. Timestamp/revision cases cover release boundaries, missing/naive values,
 ambiguous ordering, offsets, future announcements, and actual platform
 ingestion/processing boundaries for the timestamp primitive. Raw admission tests
@@ -27,8 +28,18 @@ ambiguity, exact source/venue partitions, immutable histories, provenance on
 absent matches, and real DST instants. These use hand-specified fixtures, not
 provider records or implementation-generated expected values.
 
+Membership references specify inclusive entry/exclusive exit, delayed removals,
+late corrections, complete replacements without fallback, negative provenance,
+source/universe isolation, immutable input snapshots, deterministic ordering and
+DST folds/gaps. Join references require the same E/D while selecting each source's
+own eligible revisions, retain delisted members as explicit unresolved IDs, prove
+ticker reuse preserves stable IDs, and preserve distinct same-symbol member IDs
+while explicit symbol resolution rejects ambiguity.
+Unknown raw availability remains quarantined and cannot enter these catalogs.
+See [ADR 0008](decisions/0008-point-in-time-universe-membership.md).
+
 Adapters must still authenticate provenance, prove identity and complete source
-history scope, and persist raw/quarantine records. Universe membership/joins,
+history scope, and persist raw/quarantine records. Provider coverage/completeness,
 derived lineage, target processing, holdout access control, backtest correctness,
 and financial invariants remain **unimplemented** and must not be marked complete.
 

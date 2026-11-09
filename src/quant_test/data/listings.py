@@ -152,7 +152,7 @@ class ListingCatalog:
     """
 
     def __init__(self, histories: Iterable[ListingHistory]) -> None:
-        if isinstance(histories, (str, bytes, bytearray, Mapping)):
+        if isinstance(histories, (str, bytes, bytearray, memoryview, Mapping)):
             raise ValueError("histories must be an iterable of ListingHistory records")
         try:
             records = tuple(histories)
