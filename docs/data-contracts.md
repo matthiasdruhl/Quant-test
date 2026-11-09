@@ -16,6 +16,33 @@ Raw ingestion records may retain null timestamps with a reason and source eviden
 
 `core.time.InformationAvailability` is the validated timestamp envelope, not the raw ingestion record. `event_at` accepts `None`; publication, provider availability, and ingestion must be timezone-aware datetimes. Missing, unparsed, and naive required timestamps raise `ValueError`. Provenance evidence remains the adapter's responsibility: the type cannot authenticate timestamps or make an uncertain estimate proven.
 
+`data.admission` provides an in-memory raw boundary before that validated envelope.
+Immutable `RawTimestampClaim` records retain parsed datetime/date/`None`, original
+source text, exact/unknown/approximate/unverified status, evidence reference, and
+uncertainty reason. `RawAvailability` retains the observation key, version ID,
+event time, both release claims, and ingestion time. Adapters preserve date-only
+precision and never invent an instant from it; this module performs no parsing.
+Original source text is optional: it is retained when supplied, but an exact
+claim with a nonblank evidence reference may have `source_text=None`.
+`admit_availability` returns `AcceptedAvailability` with UTC-normalized validated
+times, or `QuarantinedAvailability` with the unchanged raw envelope and all
+field-specific reasons. Required release claims must be exact, aware datetimes
+with nonblank evidence references and no declared uncertainty. Missing values,
+date-only/naive claims, missing evidence, uncertain status, or a nonblank
+uncertainty reason quarantine; unknown event time is allowed. Naive event or
+ingestion times also quarantine. All supplied datetimes must survive a UTC
+roundtrip to the same civil time and offset; nonexistent local times in a DST
+spring gap quarantine, while both valid fall folds remain distinct instants.
+Invalid API types raise `ValueError`.
+
+Admission checks the shape of an adapter's assertions; it does not authenticate
+evidence, compare parsed values with source text, prove version ownership of a
+reference, or persist quarantine. Each amendment needs its own evidence; no
+earlier version's references are inherited. Source URI, license, content checksum,
+revision rank, and retraction validation remain on `ObservationVersion` and its
+adapter. Accepted timestamps alone do not establish a validated observation or
+completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.md).
+
 ### Eligibility by mode
 - **Historical source replay:** `first_usable_at = max(published_at, source_available_at)` by UTC instant; the property returns UTC. `is_usable_at(T)` accepts equality and ignores backfill ingestion time. This reconstructs information accessible through the selected historical source, not information our platform actually observed. All comparisons normalize to UTC, including DST folds.
 - **Operational observation:** `is_available_to_platform_at(T, processed_at=...)` additionally requires ingestion and completed local validation/processing no later than T. `processed_at` must be proven for this version and cannot precede ingestion. Missing processing evidence denies eligibility. Paper consumers must use this gate upstream of the shared strategy logic. No paper/live adapter exists yet.
@@ -23,7 +50,7 @@ Raw ingestion records may retain null timestamps with a reason and source eviden
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). Raw quarantine, source-order proof, provider ingestion, effective-dated joins, and persistence remain M1 work; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results; durable quarantine, source-order proof, provider ingestion, effective-dated joins, and persistence remain M1 work. Raw envelopes and admission results cannot enter the catalog directly; a selected metadata version alone is not an evaluable dataset.
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

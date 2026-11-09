@@ -31,6 +31,13 @@ Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred
 
 Data adapters distinguish quarantined raw records from validated availability. Historical replay uses proven public/provider availability; operational consumers additionally require actual ingestion and completed processing. Derived features must validate every input and model artifact against the decision cutoff. See [data contracts](data-contracts.md) for mode, revision, and lineage rules.
 
+`data.admission` implements only the in-memory raw availability boundary: frozen
+source claims produce accepted UTC timestamps or a quarantine result retaining
+the raw envelope and field-specific reasons. Evidence references are adapter
+assertions, not authenticated proof; quarantine has no durable storage. Provider
+ingestion and operational processing remain unimplemented. See
+[ADR 0006](decisions/0006-raw-availability-admission.md).
+
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
 ## Execution boundary
