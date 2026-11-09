@@ -1,0 +1,33 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local data, licensed assets, and experiments
+data/
+artifacts/
+outputs/
+*.parquet
+*.duckdb
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+.DS_Store
+.idea/
+.vscode/
