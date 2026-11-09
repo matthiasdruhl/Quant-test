@@ -12,9 +12,9 @@ venv/
 htmlcov/
 
 # Local data, licensed assets, and experiments
-data/
-artifacts/
-outputs/
+/data/
+/artifacts/
+/outputs/
 *.parquet
 *.duckdb
 *.db

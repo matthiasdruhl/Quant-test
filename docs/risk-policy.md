@@ -10,6 +10,8 @@ Before any paper trading, define:
 - Reconciliation on startup, reconnect, and before any order.
 - Behavior on stale data, broker outages, timeouts, partial fills, and API errors.
 - Manual emergency stop and default-deny permission model.
+- Proven actual ingestion and processing times for operational inputs; historical source eligibility alone is insufficient.
+- Target expiry handling, pending-order treatment, and invalid-batch rejection under the strategy contract; stale targets cannot create new orders.
 
 Limits must be enforced by deterministic portfolio/risk code, outside AI agent control. A model's reported confidence or expected return never overrides policy. Stops are not guarantees against gapping markets or broker failures.
 

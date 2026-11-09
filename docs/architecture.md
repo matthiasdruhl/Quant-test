@@ -27,7 +27,11 @@ Long-lived, research-first U.S. equities platform for swing strategies and event
 ## Data and replay
 Store immutable raw snapshots separately from normalized curated datasets. Preserve source, revision/version, licensing, and temporal provenance. For historically valid simulation distinguish *first usable publication/source availability* from when the platform backfilled the record. Decisions must have a timestamp. Timezone-aware datetimes are mandatory.
 
-Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred until there is a real need for persistent order state. An experiment must pin code revision, configuration, source snapshot identifiers, and seeds.
+Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred until there is a real need for persistent order state. An experiment must pin code revision, configuration, source snapshot identifiers, seeds, and a complete [execution environment](environment.md). A code revision or seed alone is insufficient for replay.
+
+Data adapters distinguish quarantined raw records from validated availability. Historical replay uses proven public/provider availability; operational consumers additionally require actual ingestion and completed processing. Derived features must validate every input and model artifact against the decision cutoff. See [data contracts](data-contracts.md) for mode, revision, and lineage rules.
+
+Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
 ## Execution boundary
 Research, paper, and eventual live modes share strategy logic and risk policy contracts but **do not share credentials, mutable account state, or unapproved deployment paths**. Live mode does not exist in the scaffold. A future live implementation needs explicit owner authorization, external reconciliation, independent kill switch, and negative-path tests.
