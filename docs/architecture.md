@@ -52,8 +52,17 @@ strict versioned codec preserves raw precision, text, timezone key/offset/fold,
 and recomputes the named admission policy. This persists accepted and quarantined
 assertions under ADR 0009's filesystem/failure assumptions; it does not create
 validated observation versions or authenticate evidence. Provider ingestion,
-operational processing, metadata catalogs and dataset manifests remain
+operational processing, metadata catalogs and dataset snapshots remain
 unimplemented. See [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
+
+`data.receipt_sets` inventories an explicit sorted collection of receipt digests
+and derives immutable admission/null/precision/status/reason counts. The archive
+publishes a canonical versioned manifest/report object only after verifying all
+receipts and payloads, then reopens every dependency and recomputes counts on load.
+This counts raw assertions, without source coverage, revision selection, validated
+promotion or an evaluable dataset snapshot. Empty collections explicitly report
+zero counts. Existing publication/failure assumptions apply; see
+[ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
 `data.listings` adds an in-memory source-specific historical listing catalog.
 Complete replacement histories bind stable security IDs to effective-dated

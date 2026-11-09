@@ -65,6 +65,19 @@ unreferenced verified payload; post-link cleanup failure can leave a complete
 receipt and retry verifies it. See
 [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
+Raw receipt-set references pin independent literal schema-1 canonical bytes and
+hand-specified receipt denominators and counts. They exercise order/input snapshots,
+explicit empty sets, identical payload/key/version with distinct receipts, optional
+null text without quarantine, all claim statuses, date-only/null counts, multiple
+field/reason groups and event/ingestion issues. Strict rehashed report/schema/policy
+tampering, nested duplicate keys and noncanonical JSON reject. Missing/corrupt
+manifest/member/payload fails without fallback or repair. Dependency verification
+precedes publication; injected link failure leaves no manifest, while cleanup
+failure after linking leaves a verified complete object that retry checks. These
+local tests imply no provider coverage, completeness, dataset snapshot, CI result
+or crash durability; see
+[ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
 history scope. The local archive persists exact payloads and raw receipt assertions/
 outcomes; it does not implement a quarantine queue/reprocessing workflow or validated

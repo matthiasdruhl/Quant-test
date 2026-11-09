@@ -84,6 +84,16 @@ provider ingestion remain unimplemented. The existing archive's post-publication
 cleanup failure and no-crash-durability limits apply; see
 [ADR 0010](docs/decisions/0010-persisted-raw-admission-receipts.md). All M1 gates remain open.
 
+Explicit raw receipt sets retain sorted distinct receipt digests and descriptive
+admission/null/precision/status/reason counts. The archive verifies every selected
+receipt/payload before publishing a canonical manifest/report and recomputes it on
+reopen; corrupt or missing dependencies fail without partial results. Distinct
+same-payload receipts count separately. Empty collections have zero counts; optional
+source text and unknown event time may be absent on accepted receipts. This is
+raw assertion reporting, without coverage, revision selection, validated promotion
+or an evaluable dataset snapshot. See
+[ADR 0011](docs/decisions/0011-raw-receipt-set-quality-report.md). All M1 gates remain open.
+
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
 
 ## Safety and scope
