@@ -23,8 +23,35 @@ eligible history nor an absent interval proves real-world absence or source
 completeness. DST gaps reject; valid folds compare by UTC instant. See
 [ADR 0007](decisions/0007-historical-security-listings.md) for the key scheme,
 complete replacement assumption, end reasons, and provenance limitations.
-Universe membership, source identity proof, canonical payload hashing, and
-operational consumption remain unimplemented.
+Source identity proof, canonical payload hashing, and operational consumption
+remain unimplemented.
+
+`data.universes` adds immutable complete replacement `MembershipHistory` records
+per `(security_id, source_id, universe_id)`. The exact observation ID is the fixed
+prefix `"universe-membership-history:"` followed by the complete nonblank universe
+ID, constructed by `membership_observation_id`. Histories bind validated versions
+to UTC half-open `MembershipInterval` tuples; overlapping/duplicate intervals fail,
+adjacency is valid, and only explicit tuple/list containers can assert an empty
+replacement. Universe IDs and source IDs are exact, with no normalization.
+
+`UniverseCatalog.members_at` requires effective time no later than decision time,
+selects each latest eligible revision before filtering intervals, and returns
+asserted stable member IDs with matched intervals and selected provenance for
+positive and negative histories. Removing an interval never falls back to an older
+revision. Empty replacements affect only their security/source/universe key,
+not unmentioned securities. Missing eligibility and negative assertions remain
+distinct; neither establishes source coverage or universe completeness.
+
+`UniverseCatalog.listings_at` takes an explicit `ListingCatalog`, listing source
+and venue, and joins each asserted stable member ID at the same E/D. Each source
+independently applies its own publication/provider availability cutoff. The result
+retains membership context and every per-member listing lookup, exposes matched
+listings and explicit unresolved member IDs, and keeps negative mapping provenance.
+A delisted member or a missing mapping is never silently discarded or rebound by
+current ticker. Distinct stable members sharing a display symbol remain distinct;
+explicit symbol resolution still raises on ambiguity through `ListingCatalog`.
+Times reject DST gaps and distinguish valid folds. See
+[ADR 0008](decisions/0008-point-in-time-universe-membership.md) for scope and limits.
 
 ## Time and provenance
 For every external observation store:
@@ -73,7 +100,7 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results and `data.listings` adds effective-dated listing lookup; durable quarantine, source-order proof, provider ingestion, universe joins, and persistence remain M1 work. Raw envelopes and admission results cannot enter the catalog directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. Durable quarantine, source-order proof, provider ingestion, coverage/completeness and persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

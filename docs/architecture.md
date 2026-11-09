@@ -43,8 +43,16 @@ Complete replacement histories bind stable security IDs to effective-dated
 issuer/symbol/venue/currency intervals, including ended/delisted intervals. Queries
 select the historically eligible metadata revision before filtering effective
 time and retain selected provenance even when no interval matches. This is not
-a complete security master, coverage guarantee, or universe membership join;
+a complete security master or coverage guarantee;
 see [ADR 0007](decisions/0007-historical-security-listings.md).
+
+`data.universes` adds source-specific complete replacement membership histories
+per stable security/universe. Historical membership queries retain both asserted
+members and selected negative provenance. The listing join independently selects
+membership and listing revisions at the same effective/decision times, retains
+delisted members, and reports unresolved mappings explicitly. It establishes no
+provider coverage or universe completeness; see
+[ADR 0008](decisions/0008-point-in-time-universe-membership.md).
 
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 

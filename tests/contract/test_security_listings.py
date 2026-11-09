@@ -258,14 +258,14 @@ def test_history_binding_order_and_immutable_payload() -> None:
     assert len(copied.intervals) == 1
 
 
-@pytest.mark.parametrize("invalid", ["", b"", {}, set(), frozenset(), None, 0])
+@pytest.mark.parametrize("invalid", ["", b"", memoryview(b""), {}, set(), frozenset(), None, 0])
 def test_invalid_empty_containers_cannot_assert_complete_history_deletion(invalid: Any) -> None:
     first = history("v1", 1, instant(1), ())
     with pytest.raises(ValueError, match="intervals must be a tuple or list"):
         replace(first, intervals=invalid)
 
 
-@pytest.mark.parametrize("invalid", ["", b"", bytearray(), {}, None, 0])
+@pytest.mark.parametrize("invalid", ["", b"", bytearray(), memoryview(b""), {}, None, 0])
 def test_invalid_catalog_containers_cannot_silently_assert_no_eligible_history(
     invalid: Any,
 ) -> None:

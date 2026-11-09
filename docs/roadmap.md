@@ -21,14 +21,19 @@ The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verifi
 - [ ] Reproducible dataset snapshots, null/quality reporting.
 
 The in-memory timestamp gate, revision catalog, raw availability
-admission/quarantine result, and historical listing catalog are implemented with local deterministic reference
+admission/quarantine result, historical listing catalog, and universe membership/
+listing join are implemented with local deterministic reference
 tests; see [ADR 0005](decisions/0005-observation-revision-selection.md) and
 [ADR 0006](decisions/0006-raw-availability-admission.md), and
-[ADR 0007](decisions/0007-historical-security-listings.md). The listing slice covers
+[ADR 0007](decisions/0007-historical-security-listings.md), and
+[ADR 0008](decisions/0008-point-in-time-universe-membership.md). The listing slice covers
 source-specific complete replacement histories, effective/decision time lookup,
-and preserved delistings, not the complete security master. These primitives do not
+and preserved delistings, not the complete security master. The membership slice
+preserves asserted stable IDs, independent source revision selection, negative
+provenance and explicit unresolved listing joins; it does not establish source
+coverage or complete real-world universes. These primitives do not
 authenticate evidence or implement durable raw/quarantine storage, provider
-ingestion, source revision/identity proof, universe membership/joins, or
+ingestion, source revision/identity proof, coverage/completeness reporting, or
 dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.
 
