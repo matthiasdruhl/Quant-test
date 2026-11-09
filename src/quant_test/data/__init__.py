@@ -1,1 +1,1 @@
-"""In-memory temporal data contracts; provider/action ingestion remains future work."""
+"""Temporal catalogs and local raw archives/receipts; provider/action ingestion is future work."""

@@ -3,6 +3,14 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-09
 
+**Subsequent extensions:** admission itself remains in memory. Exact raw bytes and
+accepted/quarantined receipts now persist through [ADR 0009](0009-local-raw-payload-archive.md)
+and [ADR 0010](0010-persisted-raw-admission-receipts.md); a quarantine queue or
+reprocessing workflow remains unimplemented. Effective-dated listings and joins
+are separate slices under [ADR 0007](0007-historical-security-listings.md) and
+[ADR 0008](0008-point-in-time-universe-membership.md). The exclusions below describe
+this admission slice, not the entire current repository.
+
 ## Context
 `InformationAvailability` requires aware timestamps but cannot represent an
 adapter's missing, approximate, or unverified release claim. Constructing it

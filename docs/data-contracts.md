@@ -1,4 +1,11 @@
-# Data contracts (design draft)
+# Data contracts
+
+The named temporal/catalog/archive/receipt APIs below are implemented. Market
+bars, corporate actions, filings, alternative data, derived lineage and evaluable
+dataset snapshots remain design requirements. See the
+[active M1 scope](roadmap.md#m1--point-in-time-market-data)
+and [testing evidence](testing-strategy.md#scope-of-current-scaffold); API presence
+does not mean a milestone gate has been accepted.
 
 ## Core identifiers
 Use stable security IDs with issuer/security mappings and effective dates. Tickers are display symbols, not permanent identities. Exchanges, currencies, delistings, and corporate actions need explicit definitions.
@@ -122,8 +129,10 @@ nor authenticated by storing bytes.
 New content is staged, closed and reverified before atomic no-replace hard-link
 publication. A repeated put verifies existing bytes and their equality; it never
 replaces or repairs corrupt content. Symlink/nonregular objects reject. Invalid
-arguments raise `ValueError`; `RawArchiveError` subclasses distinguish supplied
-digest mismatch, missing payload, corrupt payload and filesystem I/O failure.
+argument types/values raise `ValueError`; a missing, non-directory, symlinked or
+inaccessible archive root raises `ArchiveIOError`. `RawArchiveError` subclasses
+distinguish supplied digest mismatch, missing payload, corrupt payload and
+filesystem I/O failure.
 `ArchiveIOError` can follow successful publication if staging cleanup fails;
 retry verifies the complete existing object but does not clear stale staging files.
 

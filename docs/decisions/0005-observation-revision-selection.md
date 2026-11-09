@@ -3,6 +3,14 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-09
 
+**Subsequent extensions:** this ADR's exclusions describe the revision-selector
+slice. Effective-dated [listings](0007-historical-security-listings.md) and
+[membership joins](0008-point-in-time-universe-membership.md), plus
+[raw storage](0009-local-raw-payload-archive.md) and
+[receipt retention](0010-persisted-raw-admission-receipts.md), are now implemented
+separately. Provider ingestion, validated catalog persistence and dataset snapshots
+remain open; see the [current contracts](../data-contracts.md).
+
 ## Context
 An observation can be revised after its first release. Choosing the latest version in a present-day dataset leaks future revisions into an earlier decision. Publication and provider availability can differ, and today's ingestion time must not move a proven historical release. Ambiguous provider ordering must fail rather than depend on input iteration order.
 

@@ -14,6 +14,9 @@ The owner accepted the M0 technical baseline on 2026-11-09. The hash-verificatio
 The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verification limitation and records its correction. Active `main` ruleset 26885025 was verified and accepted under the owner's delegated authority on 2026-11-09. The protection gate records approval of that active policy; it does not claim the owner personally configured it. All five M0 gates are complete on the linked evidence; M1 acceptance is separately scoped.
 
 ## M1 — Point-in-time market data
+**Active milestone.** Implemented slices below are partial progress; all five
+acceptance gates remain open.
+
 - [ ] Security master with delisting/history.
 - [ ] Licensed OHLCV, corporate actions, data provenance and replay fixtures.
 - [ ] Source availability is tested against decision timestamps.
@@ -48,6 +51,16 @@ coverage, validated observation promotion, revision selection or dataset snapsho
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.
+
+Implementation verification as of 2026-11-09: [PR #10](https://github.com/matthiasdruhl/Quant-test/pull/10)
+merged the receipt-set slice at
+[`f9a49d8c8a8bca55bccb5c1a1a0678f31747d54c`](https://github.com/matthiasdruhl/Quant-test/commit/f9a49d8c8a8bca55bccb5c1a1a0678f31747d54c).
+[Post-merge CI 42712502514](https://github.com/matthiasdruhl/Quant-test/actions/runs/42712502514)
+checked out that exact revision on Ubuntu 24.04 and macOS 15; both jobs passed all
+quality/build/hash checks and 393 tests. This verifies the implemented primitives
+at that revision and does not supply the missing provider integration or complete
+M1 acceptance evidence. The [documentation audit](documentation-audit.md) records
+the separate local checks and review limitations.
 
 ## M2 — Backtester and accounting
 - [ ] Reference ledger scenarios pass.
