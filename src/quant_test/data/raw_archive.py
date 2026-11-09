@@ -15,6 +15,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from re import fullmatch
 
+from quant_test.data.receipts import (
+    AdmissionReceipt,
+    ReceiptFormatError,
+    decode_receipt,
+    encode_receipt,
+)
 from quant_test.data.versions import ObservationVersion
 
 
@@ -32,6 +38,14 @@ class PayloadMissingError(RawArchiveError):
 
 class PayloadCorruptError(RawArchiveError):
     """An object is unsafe, is not a regular file, or fails checksum verification."""
+
+
+class ReceiptMissingError(RawArchiveError):
+    """The requested receipt does not exist; no substitute is returned."""
+
+
+class ReceiptCorruptError(RawArchiveError):
+    """Receipt bytes, schema, policy, or recomputed admission are invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -55,9 +69,10 @@ def _require_version(value: ObservationVersion) -> None:
 class LocalRawArchive:
     """A flat archive keyed only by exact lowercase SHA-256 digests.
 
-    No observation metadata, timestamps, revision index, or processing status is
-    persisted. Select the historical version first, then call get_version; a
-    missing/corrupt selected payload raises and must never trigger fallback.
+    Raw admission receipts additionally bind payload provenance and syntactic
+    admission. No version index or processing status is persisted. Select the
+    historical version first, then call get_version; a missing/corrupt selected
+    payload raises and must never trigger fallback.
     """
 
     def __init__(self, root: Path) -> None:
@@ -175,3 +190,36 @@ class LocalRawArchive:
         """Read exactly this version's bytes without changing version eligibility."""
         _require_version(version)
         return self.get(version.content_sha256)
+
+    def put_receipt(self, receipt: AdmissionReceipt, payload: bytes) -> str:
+        """Verify/store payload first, then publish deterministic receipt bytes.
+
+        Pre-publication failure exposes no new receipt; an unreferenced payload
+        may remain. As with put, cleanup failure after publication may raise
+        despite a complete receipt existing; retry verifies existing content.
+        """
+        encoded = encode_receipt(receipt)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(receipt.content_sha256, payload)
+        self.put(digest, encoded)
+        return digest
+
+    def get_receipt(self, receipt_sha256: str) -> AdmissionReceipt:
+        """Verify receipt and referenced payload, recomputing the named policy.
+
+        Missing/corrupt payload errors propagate without substituting another
+        receipt or revision. Successful load establishes no evidence authenticity.
+        """
+        _require_digest(receipt_sha256)
+        try:
+            encoded = self.get(receipt_sha256)
+        except PayloadMissingError as error:
+            raise ReceiptMissingError(f"raw receipt missing: {receipt_sha256}") from error
+        except PayloadCorruptError as error:
+            raise ReceiptCorruptError(f"raw receipt checksum failed: {receipt_sha256}") from error
+        try:
+            receipt = decode_receipt(encoded)
+        except ReceiptFormatError as error:
+            raise ReceiptCorruptError(f"raw receipt format failed: {receipt_sha256}") from error
+        self.get(receipt.content_sha256)
+        return receipt

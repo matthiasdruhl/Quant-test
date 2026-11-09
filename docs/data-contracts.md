@@ -87,7 +87,7 @@ Invalid API types raise `ValueError`.
 
 Admission checks the shape of an adapter's assertions; it does not authenticate
 evidence, compare parsed values with source text, prove version ownership of a
-reference, or persist quarantine. Each amendment needs its own evidence; no
+reference, or itself persist quarantine. Each amendment needs its own evidence; no
 earlier version's references are inherited. Source URI, license, content checksum,
 revision rank, and retraction validation remain on `ObservationVersion` and its
 adapter. Accepted timestamps alone do not establish a validated observation or
@@ -100,7 +100,7 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes as described below. Durable quarantine, source-order proof, provider ingestion, coverage/completeness and metadata persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. Quarantine processing workflows, source-order proof, provider ingestion, coverage/completeness and validated metadata persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
 
 ### Local raw payload archive
 
@@ -130,10 +130,53 @@ retry verifies the complete existing object but does not clear stale staging fil
 The caller controls the trusted root, permissions and capacity, and must exclude
 hostile/concurrent mutation except cooperating no-replace publishers. This supports
 local POSIX filesystem semantics only. No `fsync`, crash durability, recovery,
-garbage collection, source/tenant isolation, metadata/quarantine persistence or
-dataset manifests are provided. Read-only file permissions are not tamperproofing.
+garbage collection, source/tenant isolation, validated metadata catalogs or
+dataset manifests are provided. Raw receipt persistence is the separate extension below. Read-only file permissions are not tamperproofing.
 See [ADR 0009](decisions/0009-local-raw-payload-archive.md) for the storage rationale,
 failure semantics and acceptance limits.
+
+### Raw admission and quarantine receipts
+
+`data.receipts.AdmissionReceipt(raw, source_uri, license_id, content_sha256)` is
+frozen. It retains exact nonblank source/license strings and derives the current
+`admit_availability` result and `raw-availability-v1` policy ID. A receipt is not
+an `ObservationVersion` and cannot enter the existing catalogs directly.
+
+`encode_receipt` produces deterministic schema-version-1 ASCII JSON, whose complete
+shape and exact bytes are pinned by `tests/fixtures/admission-receipt-v1.json`.
+`decode_receipt` rejects duplicate/unknown/missing fields, wrong types, unsupported
+schema/policy, noncanonical bytes, or a stored outcome/UTC fields/quarantine reasons
+that differ from recomputed admission. Original claim text, source identifiers,
+evidence and uncertainty strings are preserved exactly, including whitespace.
+Date, datetime and `None` remain distinct. Datetimes retain civil fields and fold,
+with explicit naive/UTC/fixed-offset/keyed-ZoneInfo representations. Fixed offsets
+retain microseconds and name; ZoneInfo retains key, observed offset and name and
+must reproduce them on load. No ISO offset is silently reinterpreted; unavailable
+or changed zone rules fail. Both nonexistent DST gap folds remain quarantined;
+valid folds retain distinct UTC instants. Unsupported datetime/date subclasses
+and tzinfo implementations reject at this new codec boundary; existing in-memory
+constructors remain unchanged. The codec does not pin a full timezone database.
+
+`LocalRawArchive.put_receipt(receipt, payload) -> str` encodes first, verifies/stores
+the exact payload, then publishes the receipt under its separate receipt SHA-256.
+Both use the existing no-replace protocol. Identical payloads may have distinct
+receipts for different provenance/versions. The caller retains the receipt digest;
+there is no index or discovery API. `get_receipt(digest)` verifies and strictly
+reopens the receipt, recomputes admission, then verifies its referenced payload.
+Missing/corrupt selected objects fail without fallback. `ReceiptMissingError` and
+`ReceiptCorruptError` inherit `RawArchiveError`; referenced payload and filesystem
+failures retain their existing error types. `ReceiptFormatError` is the standalone
+codec's `ValueError` subtype.
+
+Pre-publication failure exposes no new complete receipt; verified payload bytes
+may remain unreferenced. As in ADR 0009, cleanup or directory-close failure after
+linking can raise with a complete receipt already visible; retry verifies existing
+content. No crash durability or multi-object crash transaction is promised. Receipt
+retention authenticates neither evidence nor source/license claims, does not grant
+historical catalog eligibility, and does not record completed processing. Provider
+ingestion, quarantine queues/reprocessing, validated metadata catalogs, quality/
+coverage reports and reproducible dataset snapshots remain unimplemented. See
+[ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

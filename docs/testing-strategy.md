@@ -49,11 +49,28 @@ an older readable payload. These deterministic injected faults do not establish
 crash durability or real concurrent stress; see
 [ADR 0009](decisions/0009-local-raw-payload-archive.md).
 
-Adapters must still authenticate provenance, prove identity and complete source
-history scope, and persist raw metadata/quarantine records. The local archive
-persists only payload bytes. Provider coverage/completeness,
-derived lineage, target processing, holdout access control, backtest correctness,
-and financial invariants remain **unimplemented** and must not be marked complete.
+Raw admission receipt references independently specify canonical schema-1 JSON
+bytes/digest and release cutoffs. They verify accepted/quarantined reopen and
+idempotency, exact raw/source/license/evidence/uncertainty text, distinct date/
+datetime/unknown values, UTC and named fixed offsets, keyed ZoneInfo civil times
+and both folds. Nonexistent gap times remain quarantined; valid folds retain
+independently specified UTC instants. Unsupported timezone/subclass values reject
+at the codec boundary. Rehashed schema/policy/result tampering, duplicate/unknown/
+missing fields, invalid types and noncanonical JSON fail explicitly. Identical
+payload bytes with distinct provenance yield distinct receipts; a quarantined
+amendment cannot enter the catalog while the separately validated prior version
+remains selectable. Missing/corrupt receipts and referenced payloads fail without
+fallback. Injected pre-publication failures prevent a new receipt, allowing an
+unreferenced verified payload; post-link cleanup failure can leave a complete
+receipt and retry verifies it. See
+[ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
+
+Adapters must still authenticate provenance and prove identity and complete source
+history scope. The local archive persists exact payloads and raw receipt assertions/
+outcomes; it does not implement a quarantine queue/reprocessing workflow or validated
+metadata catalogs. Provider coverage/completeness, derived lineage, target processing,
+holdout access control, backtest correctness, and financial invariants remain
+**unimplemented** and must not be marked complete.
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
