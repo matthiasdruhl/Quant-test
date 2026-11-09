@@ -64,7 +64,14 @@ mypy src
 pytest
 ```
 
-CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability, in-memory raw admission/quarantine results, a historical revision selector, historical security listing lookup, and point-in-time universe membership with a listing join; no trading functionality. Admission does not authenticate evidence or persist quarantine; see [ADR 0006](docs/decisions/0006-raw-availability-admission.md). Listing histories preserve ended/delisted intervals, use separate effective and decision times, and retain selected version provenance; see [ADR 0007](docs/decisions/0007-historical-security-listings.md). Membership joins preserve asserted stable IDs, select each source's eligible revisions independently, and explicitly report unresolved mappings with provenance. They do not establish provider coverage, universe completeness, providers, or persistence; see [ADR 0008](docs/decisions/0008-point-in-time-universe-membership.md). All M1 gates remain open.
+CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability, in-memory raw admission/quarantine results, a historical revision selector, historical security listing lookup, and point-in-time universe membership with a listing join; no trading functionality. Admission does not authenticate evidence or persist quarantine; see [ADR 0006](docs/decisions/0006-raw-availability-admission.md). Listing histories preserve ended/delisted intervals, use separate effective and decision times, and retain selected version provenance; see [ADR 0007](docs/decisions/0007-historical-security-listings.md). Membership joins preserve asserted stable IDs, select each source's eligible revisions independently, and explicitly report unresolved mappings with provenance. They do not establish provider coverage, universe completeness, provider integration, or metadata persistence; see [ADR 0008](docs/decisions/0008-point-in-time-universe-membership.md).
+
+The local raw payload archive persists exact bytes by SHA-256, verifies writes and
+reads, and publishes without replacing existing objects. Consumers select a
+historically eligible version before fetching its bytes; missing/corrupt content
+fails explicitly. This requires a trusted local POSIX filesystem and provides no
+crash durability, metadata/quarantine persistence, or dataset manifests; see
+[ADR 0009](docs/decisions/0009-local-raw-payload-archive.md). All M1 gates remain open.
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
 

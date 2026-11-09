@@ -100,7 +100,40 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. Durable quarantine, source-order proof, provider ingestion, coverage/completeness and persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes as described below. Durable quarantine, source-order proof, provider ingestion, coverage/completeness and metadata persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+
+### Local raw payload archive
+
+`LocalRawArchive(root: Path)` requires an existing absolute local directory with
+no `..` or symlink components. `put(content_sha256, payload: bytes)` verifies
+SHA-256 before writing; `get(content_sha256)` verifies the stored file before
+returning its exact bytes. Keys are exact lowercase 64-character SHA-256 hex,
+used as flat filenames. Text and mutable buffers reject; empty/binary bytes are
+valid. No canonical serialization, decoding, or normalization occurs. Adapters
+must hash the exact source representation they archive.
+
+`put_version` and `get_version` require `ObservationVersion` and use exactly its
+`content_sha256`. Consumers select eligible metadata first; a failed selected
+payload lookup raises, without falling back to a readable older revision. The
+archive has no temporal selection logic. Ingestion, availability, processing,
+revision rank, source/license, identity and evidence claims are neither inferred
+nor authenticated by storing bytes.
+
+New content is staged, closed and reverified before atomic no-replace hard-link
+publication. A repeated put verifies existing bytes and their equality; it never
+replaces or repairs corrupt content. Symlink/nonregular objects reject. Invalid
+arguments raise `ValueError`; `RawArchiveError` subclasses distinguish supplied
+digest mismatch, missing payload, corrupt payload and filesystem I/O failure.
+`ArchiveIOError` can follow successful publication if staging cleanup fails;
+retry verifies the complete existing object but does not clear stale staging files.
+
+The caller controls the trusted root, permissions and capacity, and must exclude
+hostile/concurrent mutation except cooperating no-replace publishers. This supports
+local POSIX filesystem semantics only. No `fsync`, crash durability, recovery,
+garbage collection, source/tenant isolation, metadata/quarantine persistence or
+dataset manifests are provided. Read-only file permissions are not tamperproofing.
+See [ADR 0009](decisions/0009-local-raw-payload-archive.md) for the storage rationale,
+failure semantics and acceptance limits.
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

@@ -27,6 +27,14 @@ Long-lived, research-first U.S. equities platform for swing strategies and event
 ## Data and replay
 Store immutable raw snapshots separately from normalized curated datasets. Preserve source, revision/version, licensing, and temporal provenance. For historically valid simulation distinguish *first usable publication/source availability* from when the platform backfilled the record. Decisions must have a timestamp. Timezone-aware datetimes are mandatory.
 
+`data.raw_archive` implements a local exact-byte payload store keyed by lowercase
+SHA-256, with verification on put/get and atomic publication without replacement.
+Version helpers use `ObservationVersion.content_sha256`; consumers select eligible
+metadata before fetching, and missing/corrupt selected content fails without
+fallback. Only bytes persist, on a trusted local POSIX filesystem; no crash
+durability, metadata/quarantine persistence, provenance authentication, or dataset
+manifest is provided. See [ADR 0009](decisions/0009-local-raw-payload-archive.md).
+
 Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred until there is a real need for persistent order state. An experiment must pin code revision, configuration, source snapshot identifiers, seeds, and a complete [execution environment](environment.md). A code revision or seed alone is insufficient for replay.
 
 Data adapters distinguish quarantined raw records from validated availability. Historical replay uses proven public/provider availability; operational consumers additionally require actual ingestion and completed processing. Derived features must validate every input and model artifact against the decision cutoff. See [data contracts](data-contracts.md) for mode, revision, and lineage rules.
