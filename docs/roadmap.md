@@ -2,16 +2,16 @@
 
 Estimated timing is optional; **gates are evidence-based**. Do not treat checkboxes as completed until demonstrated in CI and independent owner/reviewer review. Every completed gate must link to its immutable source revision, CI run (where executable), acceptance results, and review record in the PR or an evidence record. For a manual gate, record the owner, date, and verifiable outcome. Missing evidence leaves the box unchecked. Agents may report local checks but cannot invent CI/review approval or promote a milestone.
 
-## M0 — Governance and skeleton (current)
-- [ ] Versioned architecture, source boundaries, temporal and trading contracts accepted in review.
-- [ ] Minimal installable Python package and hash-locked CI configuration verified.
-- [ ] Time-availability primitive and explicit unimplemented modules verified in CI/review.
-- [ ] CI has actually run successfully on GitHub.
-- [ ] Repo protection/rulesets are configured by owner (where available).
+## M0 — Governance and skeleton (complete)
+- [x] Versioned architecture, source boundaries, temporal and trading contracts accepted in review. [Evidence](m0-evidence.md#m0-gate-evidence).
+- [x] Minimal installable Python package and hash-locked CI configuration verified. [Evidence](m0-evidence.md#hash-verification-correction-verified-revision-and-ci).
+- [x] Time-availability primitive and explicit unimplemented modules verified in CI/review. [Evidence](m0-evidence.md#m0-gate-evidence).
+- [x] CI has actually run successfully on GitHub. [Evidence](m0-evidence.md#hash-verification-correction-verified-revision-and-ci).
+- [x] Owner-approved repository protection/rulesets are active (where available). [Evidence](m0-evidence.md#repository-protections-active-ruleset).
 
-The contracts, package, workflow, and timestamp tests are present in the repository. The owner accepted the M0 technical baseline on 2026-11-09, and an active `main` ruleset is recorded in the evidence below. Previous completion marks lacked complete evidence and have been cleared. CI and independent review for the subsequent hash-verification correction remain pending.
+The owner accepted the M0 technical baseline on 2026-11-09. The hash-verification correction merged at [6e6ce45d88a90524152da8c12a7c198ae7df224b](https://github.com/matthiasdruhl/Quant-test/commit/6e6ce45d88a90524152da8c12a7c198ae7df224b), with passing [post-merge Ubuntu/macOS CI 42694728391](https://github.com/matthiasdruhl/Quant-test/actions/runs/42694728391) that checked out that exact revision. Earlier [PR CI 42694437775](https://github.com/matthiasdruhl/Quant-test/actions/runs/42694437775) tested GitHub's synthetic merge, not the literal PR head. Independent correction reviews and the identical source tree shared by the correction head and merged `main` are recorded in the [M0 evidence record](m0-evidence.md#independent-review-record). The four technical gates above have evidence for completion; owner acceptance of the earlier baseline is not a claim of owner acceptance of the correction.
 
-The [M0 evidence record](m0-evidence.md) links historical passing Ubuntu/macOS CI, explains its seed-package hash-verification gap, and records owner acceptance and ruleset 26885025. The correction requires its own immutable revision, successful CI, and independent review; M0 remains current and its gates remain open.
+The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verification limitation and records its correction. Active `main` ruleset 26885025 was verified and accepted under the owner's delegated authority on 2026-11-09. The protection gate records approval of that active policy; it does not claim the owner personally configured it. All five M0 gates are complete on the linked evidence; M1 acceptance is separately scoped.
 
 ## M1 — Point-in-time market data
 - [ ] Security master with delisting/history.
