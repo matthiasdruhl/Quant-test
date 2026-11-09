@@ -20,6 +20,15 @@ The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verifi
 - [ ] Unknown availability is quarantined; revision selection, security mappings, and universe joins pass independent temporal fixtures.
 - [ ] Reproducible dataset snapshots, null/quality reporting.
 
+The in-memory timestamp gate, revision catalog, and raw availability
+admission/quarantine result are implemented with local deterministic reference
+tests; see [ADR 0005](decisions/0005-observation-revision-selection.md) and
+[ADR 0006](decisions/0006-raw-availability-admission.md). These primitives do not
+authenticate evidence or implement durable raw/quarantine storage, provider
+ingestion, source revision proof, effective-dated mappings/universe joins, or
+dataset snapshots. All M1 gates remain open pending their complete acceptance
+evidence, CI, and independent review.
+
 ## M2 — Backtester and accounting
 - [ ] Reference ledger scenarios pass.
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
