@@ -31,8 +31,12 @@ source-specific complete replacement histories, effective/decision time lookup,
 and preserved delistings, not the complete security master. The membership slice
 preserves asserted stable IDs, independent source revision selection, negative
 provenance and explicit unresolved listing joins; it does not establish source
-coverage or complete real-world universes. These primitives do not
-authenticate evidence or implement durable raw/quarantine storage, provider
+coverage or complete real-world universes. The local exact-byte raw payload
+archive verifies checksums and publishes without replacement; see
+[ADR 0009](decisions/0009-local-raw-payload-archive.md). It persists only bytes
+under trusted local POSIX filesystem assumptions and makes no crash durability
+claim. These primitives do not
+authenticate evidence or implement persistent raw metadata/quarantine, provider
 ingestion, source revision/identity proof, coverage/completeness reporting, or
 dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.

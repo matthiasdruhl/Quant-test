@@ -38,8 +38,20 @@ while explicit symbol resolution rejects ambiguity.
 Unknown raw availability remains quarantined and cannot enter these catalogs.
 See [ADR 0008](decisions/0008-point-in-time-universe-membership.md).
 
+Local raw archive references use independently specified SHA-256 `abc`/empty
+vectors and exact binary payloads. They verify reopen/idempotency, mismatch before
+write, missing/corrupt content, invalid arguments and roots, symlink/directory/FIFO
+rejection, short and zero-progress writes, staged-byte verification, injected
+filesystem failures, no-replace competing publication, and cleanup failure after
+successful publication. A hand-specified late correction selects eligible
+metadata first, then proves that missing/corrupt selected content raises despite
+an older readable payload. These deterministic injected faults do not establish
+crash durability or real concurrent stress; see
+[ADR 0009](decisions/0009-local-raw-payload-archive.md).
+
 Adapters must still authenticate provenance, prove identity and complete source
-history scope, and persist raw/quarantine records. Provider coverage/completeness,
+history scope, and persist raw metadata/quarantine records. The local archive
+persists only payload bytes. Provider coverage/completeness,
 derived lineage, target processing, holdout access control, backtest correctness,
 and financial invariants remain **unimplemented** and must not be marked complete.
 
