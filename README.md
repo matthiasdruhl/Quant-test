@@ -52,9 +52,10 @@ docs/decisions/  # Architecture decision records
 Use the exact Python baseline in [.python-version](.python-version), currently 3.11.17. Package metadata permits newer interpreters, but only the pinned baseline is covered by the reproducibility contract and CI. Start from a fresh virtual environment:
 
 ```bash
-python3.11 -m venv .venv
+uv --version  # Required installer: uv 0.13.5 (see ADR 0003).
+uv venv --python "$(cat .python-version)" --managed-python .venv
 source .venv/bin/activate
-python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+uv pip install --python .venv/bin/python --require-hashes --only-binary=:all: --reinstall -r requirements-dev.lock
 python -m pip install --no-deps --no-build-isolation -e ".[dev]"
 python -m pip check
 ruff check .

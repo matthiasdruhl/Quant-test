@@ -25,11 +25,11 @@ jobs:
           enable-cache: false
       - name: Create environment with pinned Python
         run: |
-          uv venv --python "$(cat .python-version)" --managed-python --seed .venv
+          uv venv --python "$(cat .python-version)" --managed-python .venv
           echo "$GITHUB_WORKSPACE/.venv/bin" >> "$GITHUB_PATH"
       - name: Install package and dev checks
         run: |
-          python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+          uv pip install --python .venv/bin/python --require-hashes --only-binary=:all: --reinstall -r requirements-dev.lock
           python -m pip install --no-deps --no-build-isolation -e ".[dev]"
           python -m pip check
       - name: Ruff lint
@@ -43,5 +43,7 @@ jobs:
           python -m pip wheel --no-deps --no-build-isolation --wheel-dir dist .
           python -m pip install --no-deps --force-reinstall dist/*.whl
           python -c "import quant_test.data; import quant_test.core.time"
+      - name: Verify hash rejection for an installed package
+        run: python scripts/verify_hash_install.py dist/*.whl
       - name: Unit tests
         run: pytest -q
