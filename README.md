@@ -64,7 +64,7 @@ mypy src
 pytest
 ```
 
-CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability, in-memory raw admission/quarantine results, and a historical revision selector; no trading functionality. Admission does not authenticate evidence or persist quarantine; see [ADR 0006](docs/decisions/0006-raw-availability-admission.md).
+CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability, in-memory raw admission/quarantine results, a historical revision selector, and historical security listing lookup; no trading functionality. Admission does not authenticate evidence or persist quarantine; see [ADR 0006](docs/decisions/0006-raw-availability-admission.md). Listing histories preserve ended/delisted intervals, use separate effective and decision times, and retain selected version provenance. They do not establish source completeness or implement universe membership, providers, or persistence; see [ADR 0007](docs/decisions/0007-historical-security-listings.md). All M1 gates remain open.
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
 
