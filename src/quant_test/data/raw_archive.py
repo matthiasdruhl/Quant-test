@@ -15,6 +15,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from re import fullmatch
 
+from quant_test.data.receipt_sets import (
+    RawReceiptSet,
+    ReceiptSetFormatError,
+    build_receipt_set,
+    decode_receipt_set,
+    encode_receipt_set,
+)
 from quant_test.data.receipts import (
     AdmissionReceipt,
     ReceiptFormatError,
@@ -46,6 +53,14 @@ class ReceiptMissingError(RawArchiveError):
 
 class ReceiptCorruptError(RawArchiveError):
     """Receipt bytes, schema, policy, or recomputed admission are invalid."""
+
+
+class ReceiptSetMissingError(RawArchiveError):
+    """The explicitly requested raw receipt-set object does not exist."""
+
+
+class ReceiptSetCorruptError(RawArchiveError):
+    """Receipt-set checksum, schema, policy or recomputed report is invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -223,3 +238,36 @@ class LocalRawArchive:
             raise ReceiptCorruptError(f"raw receipt format failed: {receipt_sha256}") from error
         self.get(receipt.content_sha256)
         return receipt
+
+    def put_receipt_set(self, receipt_sha256s: tuple[str, ...] | list[str]) -> str:
+        """Verify all receipt/payload dependencies and publish the manifest/report last.
+
+        The explicit collection is sorted and duplicates reject. An empty list or
+        tuple is valid. Existing publication/cleanup failure semantics apply.
+        No new receipts, validated observations or dataset snapshots are created.
+        """
+        receipt_set = build_receipt_set(self, receipt_sha256s)
+        encoded = encode_receipt_set(receipt_set)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_receipt_set(self, receipt_set_sha256: str) -> RawReceiptSet:
+        """Verify/recompute a raw receipt inventory; dependency failures propagate."""
+        _require_digest(receipt_set_sha256)
+        try:
+            encoded = self.get(receipt_set_sha256)
+        except PayloadMissingError as error:
+            raise ReceiptSetMissingError(
+                f"raw receipt set missing: {receipt_set_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise ReceiptSetCorruptError(
+                f"raw receipt-set checksum failed: {receipt_set_sha256}"
+            ) from error
+        try:
+            return decode_receipt_set(encoded, self)
+        except ReceiptSetFormatError as error:
+            raise ReceiptSetCorruptError(
+                f"raw receipt-set format failed: {receipt_set_sha256}"
+            ) from error

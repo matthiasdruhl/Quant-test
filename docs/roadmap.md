@@ -40,6 +40,11 @@ raw claims under a separate digest, with a strict versioned codec and recomputed
 admission on reopen; see
 [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md). This adds raw receipt
 retention, without a quarantine processing workflow or validated metadata catalog.
+Explicit raw receipt sets now pin selected receipt digests and persist a canonical
+manifest with recomputed admission/null/precision/status/reason counts; see
+[ADR 0011](decisions/0011-raw-receipt-set-quality-report.md). These descriptive
+counts include accepted and quarantined assertions and do not establish source
+coverage, validated observation promotion, revision selection or dataset snapshots.
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.

@@ -174,9 +174,53 @@ linking can raise with a complete receipt already visible; retry verifies existi
 content. No crash durability or multi-object crash transaction is promised. Receipt
 retention authenticates neither evidence nor source/license claims, does not grant
 historical catalog eligibility, and does not record completed processing. Provider
-ingestion, quarantine queues/reprocessing, validated metadata catalogs, quality/
-coverage reports and reproducible dataset snapshots remain unimplemented. See
+ingestion, quarantine queues/reprocessing, validated metadata catalogs, coverage reports and reproducible dataset snapshots remain unimplemented. See
 [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
+
+### Explicit raw receipt sets and quality counts
+
+`data.receipt_sets.ReceiptSetManifest` pins distinct lowercase receipt digests in
+sorted immutable order. `build_receipt_set(archive, receipt_sha256s)` and
+`LocalRawArchive.put_receipt_set(receipt_sha256s)` take explicit built-in tuple/list
+collections; invalid entries/containers and duplicates reject before access.
+Every member loads through `get_receipt`, including payload verification. Same
+payloads, keys or versions do not merge distinct receipt identities. An empty
+collection is valid and includes neither unmentioned receipts nor inferred data.
+
+The frozen `RawReceiptSet` bundles its manifest and `ReceiptSetQualityReport`.
+Counts use selected receipt identities: accepted plus quarantined equals receipt
+count. Unknown event count is `event_at is None`, which admission permits. Both
+release fields have all receipts as denominator, separate null counts for parsed
+value/source text/evidence reference/uncertainty reason, date-only counts excluding
+datetimes, and exact/unknown/approximate/unverified counts that partition that
+denominator. Null means `None`; blank text is retained distinctly. Optional source
+text can be null on acceptance and exact claims normally have no uncertainty
+reason: these are descriptive raw counts, not automatic defects. Null, date and
+status dimensions can overlap. Exact `(field, reason)` groups count quarantined
+receipts with that pair, once per receipt, including event/ingestion issues.
+Multiple reasons can make their sum exceed quarantined count; groups sort by
+field/reason and zero-occurrence groups are omitted. Empty collections yield
+zero counts in both release records and no quarantine groups. No percentages,
+coverage or completeness claims are inferred.
+
+`encode_receipt_set`/`decode_receipt_set` define schema-1 canonical ASCII JSON,
+including `raw-availability-v1` and `raw-receipt-quality-v1` policy IDs and the full
+manifest/report together. Archive put verifies all dependencies before publishing
+this one object last, returning its SHA-256. Get verifies object bytes, reloads
+all receipts/payloads, recomputes report and requires exact canonical bytes.
+Rehashed summary tampering, unknown schema/policies, duplicate JSON keys,
+noncanonical JSON/order and invalid membership reject. A standalone encoder does
+not verify dependencies. The caller retains the set digest; no discovery exists.
+
+`ReceiptSetFormatError` is a codec `ValueError`; `ReceiptSetMissingError` and
+`ReceiptSetCorruptError` inherit `RawArchiveError`. Dependency receipt/payload and
+filesystem errors propagate unchanged. Any member failure prevents success;
+there is no fallback or partial result. ADR 0009's pre/post-link failure distinction,
+retry semantics, trusted POSIX filesystem and no-crash-durability limits apply.
+This is an inventory of raw assertions, without decision cutoff, revision selection,
+validated metadata promotion, processing evidence, transform/code/environment pins,
+source authentication or evaluable dataset snapshot. See
+[ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.
