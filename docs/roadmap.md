@@ -11,6 +11,8 @@ Estimated timing is optional; **gates are evidence-based**. Do not treat checkbo
 
 The contracts, package, workflow, and timestamp tests are present in the repository. Their presence is an artifact inventory, not evidence that GitHub CI, independent review, or owner configuration has completed. Previous completion marks lacked that evidence and have been cleared.
 
+Automated verification now has [immutable M0 evidence and an owner sign-off checklist](m0-evidence.md), including passing Ubuntu/macOS CI and the observed private-repository protection limitation. Review/owner decisions remain open; successful CI alone does not close M0.
+
 ## M1 — Point-in-time market data
 - [ ] Security master with delisting/history.
 - [ ] Licensed OHLCV, corporate actions, data provenance and replay fixtures.
