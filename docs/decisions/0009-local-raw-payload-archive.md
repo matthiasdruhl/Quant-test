@@ -3,6 +3,12 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-09
 
+**Subsequent extensions:** [ADR 0010](0010-persisted-raw-admission-receipts.md) adds
+persisted raw claims and accepted/quarantined admission receipts;
+[ADR 0011](0011-raw-receipt-set-quality-report.md) adds explicit receipt-set
+manifests and quality counts. The payload-only scope below describes the original
+slice. Validated catalogs and evaluable dataset snapshots remain unimplemented.
+
 ## Context
 
 `ObservationVersion.content_sha256` identifies content stored elsewhere, but the
@@ -60,8 +66,11 @@ stopped; no recovery/garbage-collection protocol is implemented.
 - `put_version(version: ObservationVersion, payload: bytes) -> None` and
   `get_version(version: ObservationVersion) -> bytes` use exactly that version's
   checksum, without changing or persisting the version.
-- Invalid digest, root, payload, or version argument types/values raise
-  `ValueError`. Payloads must be `bytes`, not mutable buffers or text.
+- Invalid digest, payload, or version argument types/values raise `ValueError`.
+  A root that is not an absolute `Path` or contains `..` also raises `ValueError`.
+  An absolute root that is missing, is not a directory, contains a symlink, or
+  cannot be accessed raises `ArchiveIOError`. Payloads must be `bytes`, not mutable
+  buffers or text.
 - `PayloadDigestMismatchError` rejects supplied bytes before creating a file.
   `PayloadMissingError` identifies an absent requested object.
   `PayloadCorruptError` identifies a nonregular or checksum-invalid object, or

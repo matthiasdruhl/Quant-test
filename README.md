@@ -2,7 +2,7 @@
 
 A long-term, **research-first** quantitative equities platform. Initial focus: reproducible U.S. stock swing-trading research, not live trading.
 
-> **Status:** Architecture and foundational scaffolding only. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
+> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, in-memory historical catalogs, and local raw payload/receipt storage with receipt-set quality counts are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
 
 ## Design priorities
 
@@ -31,21 +31,27 @@ See [roadmap](docs/roadmap.md), [architecture](docs/architecture.md), [invariant
 
 ```text
 src/quant_test/
-  core/          # Time, identifiers, common contracts
-  data/          # Historical data, actions, lineage
-  research/      # Features, experiment registry, evaluation
-  backtest/      # Simulation and accounting
-  strategies/    # Pure strategy implementations
-  intelligence/  # Macro, filings, news, alternative data
-  portfolio/     # Allocation and risk decisions
-  execution/     # Paper/live broker adapters, later
+  core/          # Implemented timestamp availability checks
+  data/          # Temporal catalogs, raw archive, receipts, receipt sets
+  research/      # Planned: features, experiment registry, evaluation
+  backtest/      # Planned: simulation and accounting
+  strategies/    # Planned: pure strategy implementations
+  intelligence/  # Planned: macro, filings, news, alternative data
+  portfolio/     # Planned: allocation and risk decisions
+  execution/     # Planned: paper/live broker adapters; no execution path
 tests/
   unit/          # Fast, deterministic tests
-  integration/   # Module boundary tests
+  integration/   # Reserved; no tests here yet
   contract/      # Reference cases and invariants
   fixtures/      # Small curated inputs
 docs/decisions/  # Architecture decision records
 ```
+
+Corporate actions, provider ingestion, curated datasets, and experiment/strategy
+interfaces remain planned. Cross-module temporal/archive cases currently live in
+`tests/contract/`; the [testing strategy](docs/testing-strategy.md) distinguishes
+existing suites from future test layers. See the dated
+[documentation audit](docs/documentation-audit.md) for review scope and evidence.
 
 ## Local development
 
@@ -64,13 +70,36 @@ mypy src
 pytest
 ```
 
-CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability, in-memory raw admission/quarantine results, a historical revision selector, historical security listing lookup, and point-in-time universe membership with a listing join; no trading functionality. Admission alone does not authenticate evidence or persist quarantine; see [ADR 0006](docs/decisions/0006-raw-availability-admission.md). Listing histories preserve ended/delisted intervals, use separate effective and decision times, and retain selected version provenance; see [ADR 0007](docs/decisions/0007-historical-security-listings.md). Membership joins preserve asserted stable IDs, select each source's eligible revisions independently, and explicitly report unresolved mappings with provenance. They do not establish provider coverage, universe completeness, provider integration, or metadata persistence; see [ADR 0008](docs/decisions/0008-point-in-time-universe-membership.md).
+CI runs these checks on Ubuntu and macOS, then builds/installs the wheel and checks
+hash rejection before testing the installed distribution. Successful M0 execution
+is recorded in [M0 evidence](docs/m0-evidence.md); later implementation evidence
+does not by itself close an M1 gate. See
+[environment setup and lock updates](docs/environment.md).
+
+## Implemented data primitives
+
+The package implements timestamp availability, in-memory raw admission/quarantine
+results, a historical revision selector, historical security listing lookup, and
+point-in-time universe membership with a listing join. Admission alone does not
+authenticate evidence or persist quarantine; [receipt storage](#raw-storage) adds
+persistence separately. See
+[ADR 0006](docs/decisions/0006-raw-availability-admission.md). Listing histories
+preserve ended/delisted intervals, use separate effective and decision times, and
+retain selected version provenance; see
+[ADR 0007](docs/decisions/0007-historical-security-listings.md). Membership joins
+preserve asserted stable IDs, select each source's eligible revisions independently,
+and explicitly report unresolved mappings with provenance. They do not establish
+provider coverage, universe completeness, provider integration, or validated
+metadata persistence; see
+[ADR 0008](docs/decisions/0008-point-in-time-universe-membership.md).
+
+### Raw storage
 
 The local raw payload archive persists exact bytes by SHA-256, verifies writes and
 reads, and publishes without replacing existing objects. Consumers select a
 historically eligible version before fetching its bytes; missing/corrupt content
 fails explicitly. This requires a trusted local POSIX filesystem and provides no
-crash durability or dataset manifests; see
+crash durability or evaluable dataset snapshots; see
 [ADR 0009](docs/decisions/0009-local-raw-payload-archive.md).
 
 Frozen raw admission/quarantine receipts bind exact source/license assertions,
@@ -82,7 +111,7 @@ validated observation versions, or establish completed processing. The caller
 retains receipt digests; validated metadata catalogs, quarantine workflows and
 provider ingestion remain unimplemented. The existing archive's post-publication
 cleanup failure and no-crash-durability limits apply; see
-[ADR 0010](docs/decisions/0010-persisted-raw-admission-receipts.md). All M1 gates remain open.
+[ADR 0010](docs/decisions/0010-persisted-raw-admission-receipts.md).
 
 Explicit raw receipt sets retain sorted distinct receipt digests and descriptive
 admission/null/precision/status/reason counts. The archive verifies every selected
@@ -94,7 +123,7 @@ raw assertion reporting, without coverage, revision selection, validated promoti
 or an evaluable dataset snapshot. See
 [ADR 0011](docs/decisions/0011-raw-receipt-set-quality-report.md). All M1 gates remain open.
 
-The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
+The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 
 ## Safety and scope
 

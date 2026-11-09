@@ -1,6 +1,10 @@
-# Architecture (initial contract)
+# Architecture
 
-**Status:** design baseline, not implemented services. Review changes through ADRs.
+**Status:** design baseline with implemented `core.time` and `data` primitives
+described below. The research, backtest, strategies, intelligence, portfolio, and
+execution packages contain only docstrings reserving future module boundaries.
+Review architectural changes through ADRs. M1 is the active milestone; its
+acceptance gates remain open in the [roadmap](roadmap.md#m1--point-in-time-market-data).
 
 ## Mission
 Long-lived, research-first U.S. equities platform for swing strategies and eventually paper/live execution. The platform is a **modular Python monolith** with narrow contracts, not a distributed system.
@@ -35,7 +39,12 @@ fallback. Payloads persist on a trusted local POSIX filesystem with no crash
 durability or provenance authentication. See
 [ADR 0009](decisions/0009-local-raw-payload-archive.md).
 
-Initial analytical storage: Parquet + DuckDB; operational PostgreSQL is deferred until there is a real need for persistent order state. An experiment must pin code revision, configuration, source snapshot identifiers, seeds, and a complete [execution environment](environment.md). A code revision or seed alone is insufficient for replay.
+Planned analytical storage: Parquet + DuckDB; neither is implemented or declared as
+a runtime dependency. The implemented storage boundary is the local raw archive
+above. Operational PostgreSQL is deferred until there is a real need for persistent
+order state. An experiment must pin code revision, configuration, source snapshot
+identifiers, seeds, and a complete [execution environment](environment.md). A code
+revision or seed alone is insufficient for replay.
 
 Data adapters distinguish quarantined raw records from validated availability. Historical replay uses proven public/provider availability; operational consumers additionally require actual ingestion and completed processing. Derived features must validate every input and model artifact against the decision cutoff. See [data contracts](data-contracts.md) for mode, revision, and lineage rules.
 

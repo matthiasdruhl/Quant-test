@@ -4,6 +4,13 @@
 CI is configured to run `ruff check .`, `ruff format --check .`, `mypy src`, and `pytest` on the exact Python baseline in `.python-version`, on Ubuntu and macOS. It additionally builds/installs a wheel and checks that the data/time modules import; pytest then exercises the installed distribution. Local checks use the same hash-locked installation described in [environment setup](environment.md). A workflow file is not evidence of a successful remote run.
 
 ## Test layers
+The layers below are the verification plan. Currently, `tests/unit/` contains the
+timestamp suite and `tests/contract/` contains the data reference, cross-module,
+and adversarial cases described below. `tests/integration/` contains only a
+`.gitkeep`. Hypothesis is a locked development dependency, but no property-based
+suite is implemented. End-to-end ingestion, strategy, ledger, and research layers
+await their owning milestones.
+
 1. **Unit:** deterministic parsers, timestamps, calculations, validation, negative paths.
 2. **Contract:** provider/strategy/portfolio interfaces and hand-calculated accounting fixtures.
 3. **Property:** monotonicity/invariants using Hypothesis; random valid and invalid sequences.

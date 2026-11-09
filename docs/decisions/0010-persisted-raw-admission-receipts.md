@@ -3,6 +3,11 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-09
 
+**Subsequent extension:** [ADR 0011](0011-raw-receipt-set-quality-report.md) now
+persists an explicit receipt-set manifest and descriptive quality report. The
+individual-receipt scope below remains unchanged; neither extension implements
+an evaluable dataset snapshot or a quarantine processing workflow.
+
 ## Context
 
 ADR 0006 retains raw claims and admission results only in memory. ADR 0009 stores
