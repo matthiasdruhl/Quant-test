@@ -38,6 +38,14 @@ assertions, not authenticated proof; quarantine has no durable storage. Provider
 ingestion and operational processing remain unimplemented. See
 [ADR 0006](decisions/0006-raw-availability-admission.md).
 
+`data.listings` adds an in-memory source-specific historical listing catalog.
+Complete replacement histories bind stable security IDs to effective-dated
+issuer/symbol/venue/currency intervals, including ended/delisted intervals. Queries
+select the historically eligible metadata revision before filtering effective
+time and retain selected provenance even when no interval matches. This is not
+a complete security master, coverage guarantee, or universe membership join;
+see [ADR 0007](decisions/0007-historical-security-listings.md).
+
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
 ## Execution boundary

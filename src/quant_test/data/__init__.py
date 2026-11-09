@@ -1,1 +1,1 @@
-"""Future point-in-time market data and corporate-action ingestion."""
+"""In-memory temporal data contracts; provider/action ingestion remains future work."""

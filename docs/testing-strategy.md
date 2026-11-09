@@ -15,7 +15,22 @@ CI is configured to run `ruff check .`, `ruff format --check .`, `mypy src`, and
 Reference fixtures must be constructed from an external calculation or human-readable specification, not copied from implementation results. A separate reviewer checks the acceptance contract and can add failing cases. Do not weaken a test merely to make a PR pass.
 
 ## Scope of current scaffold
-Timestamp availability and in-memory historical observation-version selection have implemented test suites. They cover release boundaries, missing/naive timestamps, revisions, ambiguous ordering, offsets, future announced events, and actual platform ingestion/processing boundaries for the timestamp primitive. Adapters must still prove provenance and implement raw quarantine. Effective-dated joins, derived lineage, target processing, holdout access control, backtest correctness, and financial invariants remain **unimplemented** and must not be marked complete.
+Timestamp availability, in-memory historical observation-version selection, raw
+admission/quarantine results, and historical listing lookup have implemented test
+suites. Timestamp/revision cases cover release boundaries, missing/naive values,
+ambiguous ordering, offsets, future announcements, and actual platform
+ingestion/processing boundaries for the timestamp primitive. Raw admission tests
+exercise uncertain claims, evidence assertions, and DST gaps/folds. Listing
+reference cases independently specify initial/rename/delist boundaries, ticker
+reuse, late corrections, removed intervals without fallback, eligible symbol
+ambiguity, exact source/venue partitions, immutable histories, provenance on
+absent matches, and real DST instants. These use hand-specified fixtures, not
+provider records or implementation-generated expected values.
+
+Adapters must still authenticate provenance, prove identity and complete source
+history scope, and persist raw/quarantine records. Universe membership/joins,
+derived lineage, target processing, holdout access control, backtest correctness,
+and financial invariants remain **unimplemented** and must not be marked complete.
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
