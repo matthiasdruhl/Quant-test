@@ -63,7 +63,7 @@ mypy src
 pytest
 ```
 
-CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). This skeleton contains only one implemented foundational contract: timestamp availability semantics; no trading functionality.
+CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). The scaffold implements timestamp availability and an in-memory historical revision selector; no trading functionality.
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
 
