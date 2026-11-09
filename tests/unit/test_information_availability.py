@@ -1,13 +1,10 @@
 """Independent boundary cases for point-in-time availability."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 
 import pytest
 
 from quant_test.core.time import InformationAvailability
-
-UTC = timezone.utc
-
 
 def at_hour(hour: int) -> datetime:
     return datetime(2025, 1, 3, hour, tzinfo=UTC)
