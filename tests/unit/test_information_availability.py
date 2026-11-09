@@ -6,6 +6,7 @@ import pytest
 
 from quant_test.core.time import InformationAvailability
 
+
 def at_hour(hour: int) -> datetime:
     return datetime(2025, 1, 3, hour, tzinfo=UTC)
 
