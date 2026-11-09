@@ -10,6 +10,9 @@ These are intended system properties, **not claims that the scaffold currently e
 5. Economic revisions, restated financials, amended SEC filings, and model-extracted summaries are versioned rather than overwritten.
 6. No same-bar closing price used to decide a fill earlier in that bar; signal and fill timestamps must be consistent.
 7. Delisted assets and point-in-time membership must not disappear from historical universes.
+8. Missing or uncertain public/provider availability is ineligible; an unknown event time is retained as unknown, never fabricated.
+9. Operational decisions require completed local ingestion/processing, even when a historical replay would permit the record earlier.
+10. Derived inputs, fitted transforms, and model artifacts must satisfy the decision cutoff recursively. Future training, tuning, or artifact release cannot be hidden behind an old source timestamp.
 
 ## Financial accounting
 1. Equity = settled/unsettled cash according to declared convention + marked assets - liabilities.
@@ -25,6 +28,8 @@ These are intended system properties, **not claims that the scaffold currently e
 3. Baselines, capacity limits, costs, and uncertainty are reported alongside returns.
 4. Predictive models use purged/embargoed or otherwise leakage-safe time splits where labels overlap.
 5. No strategy is described as profitable without evaluated after-cost out-of-sample evidence.
+6. Reserve the frozen candidate and evaluation protocol before holdout access; consume the holdout before reading it, including failed evaluations. Consumption cannot be rolled back.
+7. Replay evidence includes the resolved environment and artifact lineage, not just code, data, configuration, and seeds.
 
 ## Operational and security
 1. No real brokerage credentials in repository, test logs, or AI context.

@@ -1,0 +1,5 @@
+# Build/install tooling, locked together with pyproject.toml's dev extra.
+# Keep build backend requirements compatible with [build-system].requires.
+pip>=24
+setuptools>=75
+wheel

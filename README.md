@@ -49,19 +49,23 @@ docs/decisions/  # Architecture decision records
 
 ## Local development
 
-Use Python 3.11 or newer:
+Use the exact Python baseline in [.python-version](.python-version), currently 3.11.17. Package metadata permits newer interpreters, but only the pinned baseline is covered by the reproducibility contract and CI. Start from a fresh virtual environment:
 
 ```bash
-python -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev]"
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+python -m pip install --no-deps --no-build-isolation -e ".[dev]"
+python -m pip check
 ruff check .
 ruff format --check .
 mypy src
 pytest
 ```
 
-CI runs the same checks. This skeleton contains only one implemented foundational contract: timestamp availability semantics; no trading functionality.
+CI is configured to run the same checks on Ubuntu and macOS; successful GitHub execution remains an evidence gate in the roadmap. See [environment setup and lock updates](docs/environment.md). This skeleton contains only one implemented foundational contract: timestamp availability semantics; no trading functionality.
+
+The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented timestamp checks from future enforcement.
 
 ## Safety and scope
 

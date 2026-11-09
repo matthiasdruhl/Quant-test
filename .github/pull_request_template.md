@@ -15,6 +15,8 @@ List temporal, accounting, data, or execution assumptions impacted.
 - [ ] `mypy src`
 - [ ] `pytest`
 - [ ] No newly enabled live trading / credentials / hidden side effects
+- [ ] Environment/lock and temporal artifact lineage recorded where relevant
+- [ ] Milestone completion claims link to source revision, CI run, and independent review
 
 Actual commands and results (do not invent):
 
