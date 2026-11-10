@@ -3,6 +3,14 @@
 ## Fast checks
 CI is configured to run `ruff check .`, `ruff format --check .`, `mypy src`, and `pytest` on the exact Python baseline in `.python-version`, on Ubuntu and macOS. It additionally builds/installs a wheel and checks that the data/time modules import; pytest then exercises the installed distribution. Local checks use the same hash-locked installation described in [environment setup](environment.md). A workflow file is not evidence of a successful remote run.
 
+The same workflow runs on pushes to `main` and `codex/**` branches and on pull
+requests, so a pushed implementation branch can receive CI without opening a PR.
+Push runs check out the pushed revision; PR runs use GitHub's synthetic merge
+revision under the current checkout configuration. Record the actual checked-out
+SHA from job logs when reporting evidence; a run associated with a PR head does
+not prove that the literal head was tested. Trigger coverage does not authorize
+merging, deployment or milestone completion.
+
 ## Test layers
 The layers below are the verification plan. Currently, `tests/unit/` contains the
 timestamp suite and `tests/contract/` contains the data reference, cross-module,
