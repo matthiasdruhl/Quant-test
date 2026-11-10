@@ -15,9 +15,12 @@ or implement a strategy runner.
 
 This ADR refines typed representation, caller-context correspondence and pure
 history selection. It adopts no financial conversion, accounting, allocation or
-risk convention. The [M2 ledger proposal](0017-explicit-reference-ledger.md)
-remains separately Proposed and requires explicit owner approval before runtime
-implementation. All milestone gates remain open.
+risk convention. Subsequent owner approval of the bounded M2 explicit-fill
+reference model is recorded in
+[ADR 0017](0017-explicit-reference-ledger.md#recorded-owner-approval). It does not
+authorize target conversion, allocation or broader accounting choices. This
+quantity/lifecycle boundary adopts none of those conventions; all milestone gates
+remain open.
 
 ## Immutable APIs
 

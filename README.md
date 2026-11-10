@@ -34,7 +34,7 @@ src/quant_test/
   core/          # Implemented timestamp availability checks
   data/          # Temporal catalogs, archive, receipts, linked metadata records
   research/      # Planned: features, experiment registry, evaluation
-  backtest/      # Planned: simulation and accounting
+  backtest/      # Explicit-fill reference ledger; simulation remains planned
   strategies/    # Long-only target batches/lifecycle; strategy runners planned
   intelligence/  # Planned: macro, filings, news, alternative data
   portfolio/     # Planned: allocation and risk decisions
@@ -176,10 +176,15 @@ dataset snapshot. See
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 
-The [M2 reference-ledger proposal](docs/decisions/0017-explicit-reference-ledger.md)
-and [five arithmetic scenarios](docs/m2-reference-ledger-v1.md) make the first
-accounting decisions reviewable. They remain Proposed and require explicit owner
-approval before financial runtime implementation; no ledger or simulator is added.
+The [M2 reference ledger](docs/decisions/0017-explicit-reference-ledger.md)
+implements the exact bounded v1 financial conventions approved by the task user,
+with the [five independent arithmetic scenarios](docs/m2-reference-ledger-v1.md).
+Explicit opening cash, fills and whole-fill settlements derive immutable cash,
+obligations and held/sellable shares. Fresh same-instant marks derive arithmetic
+equity; retries are idempotent only for identical facts and invalid transitions
+leave prior state unchanged. No actual fill/source truth, simulator, accounting
+conversion from targets, broker or order path is supplied. Financial approval is
+separate from runtime/CI acceptance; all M1/M2/M3 gates remain open.
 
 `strategies.targets` implements an immutable long-only quantity/lifecycle subset:
 required Decimal equity fractions, explicit caller snapshot/context assertions,

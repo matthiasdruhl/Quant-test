@@ -1,15 +1,22 @@
-# Explicit-fill reference ledger v1: proposed reference specification
+# Explicit-fill reference ledger v1: approved reference specification
 
-- **Status:** Proposed; owner approval required before runtime implementation
+- **Status:** Bounded v1 conventions approved; runtime verification separate
 - **Date:** 2026-11-10
 
-This is the human-readable specification accompanying [proposed ADR
-0017](decisions/0017-explicit-reference-ledger.md). Every convention below is
-proposed, not adopted. The
-[testing strategy](testing-strategy.md#pull-request-acceptance)
-requires: **"Human approval for financial conventions, dependencies, and any
-eventual brokerage access."** No approval, implementation or milestone acceptance
-is claimed here.
+This is the human-readable specification accompanying
+[ADR 0017](decisions/0017-explicit-reference-ledger.md). The repository owner/task
+user approved its bounded v1 conventions, scope and five reference scenarios in
+this Codex chat on 2026-11-10 with the exact reply “Approve v1 as specified”, in
+response to the exact-revision approval request for
+`b216d63d3a63c39f8770f6f3500e7e75127da590`. The complete
+[approval record](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+distinguishes that financial decision from runtime/CI/milestone acceptance.
+
+The [testing strategy](testing-strategy.md#pull-request-acceptance) requires human
+approval for financial conventions. That requirement is satisfied only for this
+identified baseline, not additional conventions or any brokerage/trading path.
+The arithmetic/reference scenarios below remain unchanged from that revision;
+the ADR's technical API refinement adds no financial choice.
 
 ## Input and arithmetic boundary
 
@@ -51,7 +58,7 @@ fixed offsets or reopenable keyed ZoneInfo reproducing the offset/name, as at th
 [existing replay boundary](decisions/0016-historical-universe-listing-replay.md).
 Reject naive/date/subclass/unsupported-zone values, nonexistent civil times and
 UTC overflow. Normalize to UTC with fold zero; valid folds remain different
-instants. This is proposed input validation, not an implemented ledger API.
+instants. This is approved input validation; runtime verification is a separate gate.
 Events are supplied in explicit nondecreasing time order. Equal-time events use
 their input order, without
 automatic sorting or settlement-first priority. Settlement must not precede its
@@ -59,7 +66,7 @@ fill. There is no calculated due date or calendar. A missing settlement event
 leaves the obligation open; advancing time does not settle it or prove the stream
 complete.
 
-## State and proposed transitions
+## State and approved transitions
 
 Let `C` be settled cash in hundredths; `B` the sum of open buy payables; `R` the
 sum of open sell receivables; `H[s]` held shares of security `s`; and `U[s]` the
@@ -104,7 +111,7 @@ skip failed events and call that original full replay successful. This specifies
 immutable transition behavior; it does not prescribe a durable storage or
 transaction system.
 
-## Proposed valuation requests
+## Approved valuation requests
 
 A valuation request is nonmutating. Its timestamp must be aware, valid and no
 earlier than the last accepted event. Supply exactly one valuation assertion for
@@ -239,19 +246,20 @@ holdings 2, unsettled buys 2, sellable zero.
   at 11:00 whose A mark is valued at 11:00:01 rejects. Neither request mutates
   state or registers a new accounting event.
 
-## Future implementation acceptance and exclusions
+## Runtime acceptance and exclusions
 
-These values come from this specification's integer arithmetic, not a runtime
-implementation. Independent executable cases must verify each state transition,
-settlement neutrality, reservations, idempotence and exact rejection state.
+These expected values were specified before runtime implementation. Independent
+executable cases verify each state transition, settlement neutrality, reservations,
+idempotence and exact rejection state.
 Additional negative cases must cover units/types, currency mismatch, fees,
 short-sale attempts, settlement before execution, timestamp gaps/folds,
 out-of-order new events, unsupported event kinds and invalid mark sets.
 
-The future implementation must satisfy the repository's
+Runtime acceptance requires the repository's
 [change procedure](../AGENTS.md#change-procedure),
-four required checks, exact-revision CI and independent review after explicit
-owner approval. This proposal does not implement a simulator, source validator,
-experiment runner or any trade-authorizing path. It chooses no corporate-action,
-tax-lot, realized-P&L, financing or strategy-performance convention. It closes no
+four required checks, exact-revision CI and independent review in addition to
+the recorded exact-revision approval. This specification does not itself implement
+a simulator, source validator, experiment runner or any trade-authorizing path.
+It chooses no corporate-action, tax-lot, realized-P&L, financing or
+strategy-performance convention. It closes no
 M1 or M2 milestone gate; see the [roadmap](roadmap.md).

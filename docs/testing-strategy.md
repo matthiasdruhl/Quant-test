@@ -16,8 +16,9 @@ The layers below are the verification plan. Currently, `tests/unit/` contains th
 timestamp suite and `tests/contract/` contains the data reference, cross-module,
 and adversarial cases described below. `tests/integration/` contains only a
 `.gitkeep`. Hypothesis is a locked development dependency, but no property-based
-suite is implemented. End-to-end ingestion, strategy, ledger, and research layers
-await their owning milestones.
+suite is implemented. End-to-end ingestion, strategy, simulator-to-ledger and
+research layers await their owning milestones; the bounded reference ledger has
+standalone contract cases below.
 
 1. **Unit:** deterministic parsers, timestamps, calculations, validation, negative paths.
 2. **Contract:** provider/strategy/portfolio interfaces and hand-calculated accounting fixtures.
@@ -168,8 +169,9 @@ history scope. The local archive persists exact payloads, raw receipt assertions
 outcomes, individually linked version assertions and explicit metadata inventories;
 it does not implement a quarantine queue/reprocessing workflow. Provider
 coverage/completeness, derived lineage, target processing,
-holdout access control, backtest correctness, and financial invariants remain
-**unimplemented** and must not be marked complete.
+holdout access control, complete backtest correctness and broader platform
+financial invariants remain future enforcement and must not be marked complete.
+The bounded reference ledger below enforces only its approved arithmetic model.
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
@@ -217,19 +219,29 @@ cases do not verify source truth, actual target arrival/current portfolio, sizin
 allocation, accounting or strategy performance. See
 [ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md).
 
-## Proposed M2 ledger references
+## Reference ledger verification
 
-[ADR 0017](decisions/0017-explicit-reference-ledger.md) and the
-[five reference scenarios](m2-reference-ledger-v1.md) provide reviewable proposed
-units, fill/settlement arithmetic, reservations, identity/retry behavior and
-explicit valuation inputs. They are hand-calculated specifications, not executed
-ledger tests or accepted financial defaults. The human-approval requirement below
-applies before runtime implementation: record owner approval of the exact
-revision's five decisions, scope and references. After approval, a separate
-implementation must add independent executable scenarios and negative invariants,
-then receive independent review and exact-revision CI. Existing checks on this
-docs-only proposal verify the repository, not accounting runtime or milestone
-acceptance.
+The [five independent scenarios](m2-reference-ledger-v1.md) at the
+[approved baseline](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+remain unchanged; executable contract cases assert their literal balances,
+held/unsettled/sellable shares, obligations and equity. References cover buy-fee
+recognition, distinct partial fills/settlements, cash reservation, unsettled-share
+rejection, idempotent old retries, conflicts, equal-time ordering and complete
+same-instant valuation. Additional cases exercise cash reservations across
+securities and per-security sellability, no financing from unsettled proceeds,
+permanent fill IDs, zero-net open sales,
+fully sold/zero-equity/zero-opening states and settlement neutrality.
+
+Negative cases cover every identity field/cross-kind collision, rejected-ID reuse,
+new-event ordering, units/currency/standard integer/record/container boundaries,
+immutable inputs/derived-only outputs and full replay rejection without partial
+success. UTC offsets/folds/gaps, keyed-zone reproduction and overflow preserve
+real instants. Valuations neither cache marks nor advance/register accounting
+state; source availability and target conversion remain separate boundaries.
+These inputs assert reference facts, not actual fills or provider-backed prices.
+Financial approval, local executable references, independent review, exact-revision
+CI and milestone acceptance are distinct; no M1/M2/M3 gate closes from this slice.
+New financial choices still require the approval listed below.
 
 ## Pull request acceptance
 - Small, coherent task and explicit non-goals.

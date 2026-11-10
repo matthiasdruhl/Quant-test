@@ -1,9 +1,9 @@
 # Architecture
 
 **Status:** design baseline with implemented `core.time` and `data` primitives
-described below, plus the narrow `strategies.targets` quantity/lifecycle boundary.
-The research, backtest, intelligence, portfolio and execution packages contain
-only docstrings reserving future module boundaries; strategy runners remain future.
+described below, the narrow `strategies.targets` quantity/lifecycle boundary and
+`backtest.reference_ledger`. Research, intelligence, portfolio and execution
+contain only boundary docstrings; strategy runners and fill simulation remain future.
 Review architectural changes through ADRs. M1 is the active milestone; its
 acceptance gates remain open in the [roadmap](roadmap.md#m1--point-in-time-market-data).
 
@@ -138,7 +138,8 @@ adds one consumer assertion artifact without source authentication, code/config/
 environment collection or an evaluable dataset snapshot. See
 [ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 
-Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
+Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); target-to-portfolio conversion and broader accounting remain future; the bounded
+reference ledger is described below.
 
 The development-only `scripts/verify_toolchain_replay.py` consumes real locked
 wheel bytes and a built local package to verify one fresh offline toolchain.
@@ -160,17 +161,27 @@ Selected provenance distinguishes no batch, active empty and expired assertions.
 Snapshot identities/usability and decision timelines are caller assertions, not
 source lineage, actual batch arrival, operational receipt or current portfolio
 proof. The broader signed strategy-output design remains future, as do strategy
-runners, allocation, limits, valuation, orders and accounting conversion.
+runners, allocation, limits, valuation for target conversion, orders and
+accounting conversion.
 
-## Proposed accounting boundary
+## Reference accounting boundary
 
-[ADR 0017](decisions/0017-explicit-reference-ledger.md) and its
-[reference specification](m2-reference-ledger-v1.md) propose a pure explicit-fill
-ledger with declared units, obligations, reservations and valuation assertions.
-This is a docs-only proposal requiring owner approval of the exact financial
-choices before implementation. The backtest package still contains only its
-boundary docstring; no fill simulator, ledger, broker or trade-authorizing path
-is implemented. M1 remains active and no milestone gate closes through this work.
+`backtest.reference_ledger` implements the bounded explicit-fill model under the
+[recorded exact-revision owner approval](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+and [independent reference specification](m2-reference-ledger-v1.md).
+Frozen opening/fill/settlement facts are the only ledger inputs; replay derives
+all balances, whole-fill obligations, positions and identity state. Exact event
+retries precede time/type-specific transition checks, equal-time input order
+remains explicit, and rejection cannot mutate prior state. Buy cash reservations
+and unsettled-share restrictions follow that approved model without inferring
+settlement dates or financing from sale receivables.
+
+`LedgerValuation` requires a complete explicit same-instant mark set and derives
+equity without injecting totals, caching marks or advancing the event cursor.
+These are arithmetic reference assertions, not actual trades, source availability
+or authenticated prices. Target conversion, broader allocation/accounting,
+corporate actions, simulation, strategies and broker/order paths remain future.
+M1 remains active and no milestone gate closes through this work.
 
 ## Execution boundary
 Research, paper, and eventual live modes share strategy logic and risk policy contracts but **do not share credentials, mutable account state, or unapproved deployment paths**. Live mode does not exist in the scaffold. A future live implementation needs explicit owner authorization, external reconciliation, independent kill switch, and negative-path tests.

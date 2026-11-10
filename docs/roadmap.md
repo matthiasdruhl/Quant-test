@@ -103,13 +103,17 @@ the separate local checks and review limitations.
 
 ## M2 — Backtester and accounting
 
-The [explicit-fill reference-ledger proposal](decisions/0017-explicit-reference-ledger.md)
-and its [five arithmetic reference scenarios](m2-reference-ledger-v1.md) are ready
-for review, not approved conventions or runtime implementation. They propose
-units, fill-time recognition, reservations/sellable shares, costs and explicit
-valuation. Owner approval of the exact revision, all five decisions, scope and
-reference scenarios is required before financial runtime code. M1 remains active;
-all M1 and M2 acceptance gates remain open.
+The task user approved the exact bounded v1 conventions and five reference
+scenarios at `b216d63d3a63c39f8770f6f3500e7e75127da590`; the
+[approval record](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+is separate from implementation acceptance. `backtest.reference_ledger` now
+replays explicit cash/fill/whole-settlement assertions into immutable balances,
+reserved cash, held/sellable quantities and exact identity provenance. Fresh
+explicit marks derive arithmetic equity under the
+[unchanged five reference scenarios](m2-reference-ledger-v1.md). This adds no fill
+simulator, actual trade/source proof, target conversion, corporate-action policy,
+financing or strategy returns. M1 remains active; all M1/M2/M3 acceptance gates
+remain open pending their full review/CI evidence, not financial approval alone.
 
 - [ ] Reference ledger scenarios pass.
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
