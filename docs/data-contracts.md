@@ -369,9 +369,9 @@ apply without crash durability, recovery, fallback or repair.
 Valid changed intervals/order or a reference to another fully valid listing
 version create new assertions. Their hashes do not prove parsing from raw bytes,
 complete source scope or truthful identity. Conflicting histories may reference
-one version; a future collection boundary must reject conflicting identities.
-Callers retain listing digests. No listing inventory, membership serialization,
-coverage report, provider acceptance or evaluable dataset snapshot is added. See
+one version; the replay collection boundary below rejects conflicting identities.
+Callers retain listing digests. Individual records add no catalog index, coverage
+report, provider acceptance or evaluable dataset snapshot. See
 [ADR 0014](decisions/0014-persisted-listing-history-records.md).
 
 ### Persisted membership-history assertions
@@ -422,10 +422,81 @@ Valid changed intervals/reference or a jointly changed universe and matching
 reference are new assertions; hashes do not authenticate parsing, source scope or
 rights. Reopened histories compose with existing universe/listing catalogs using
 independent release cutoffs and stable IDs, preserving delisted/unresolved members
-and selected negative mapping provenance. There is no separate inventory,
-consumer replay artifact, provider acceptance, coverage report or evaluable
-dataset snapshot in this slice. See
+and selected negative mapping provenance. Individual membership records supply
+no catalog index, provider acceptance, coverage report or evaluable dataset
+snapshot; the consumer replay boundary follows below. See
 [ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
+### Historical universe-listing replay assertions
+
+`data.universe_listing_replays.UniverseListingReplayManifest` accepts explicit
+built-in tuple/list `listing_history_record_sha256s` and
+`membership_history_record_sha256s`, validates all lowercase digests/duplicates
+before reads, snapshots and sorts them into immutable tuples. It also requires
+exact nonblank `universe_id`, `membership_source_id`, `listing_source_id`, `venue`,
+`effective_at` and `decision_at`. The universe helper preserves the entire exact
+suffix. Query instants require standard aware datetimes with UTC, standard fixed
+offsets or reopenable keyed ZoneInfo reproducing offset/name. Civil gaps reject
+before UTC normalization, valid folds remain distinct, and unsupported date/
+datetime/tzinfo values or UTC overflow raise `ValueError`. Times normalize to UTC
+with fold zero and require effective time no later than decision time. Existing
+in-memory query contracts are unchanged.
+
+Frozen `UniverseListingReplay(manifest, listing_records, membership_records)`
+requires immutable typed tuples in exact manifest digest order. It constructs
+existing listing/universe catalogs over every record, rejecting duplicate IDs/
+ranks or contradictory availability even for irrelevant/future histories before
+filtering. It computes `result: UniverseListingResult` through the existing join
+with the exact common query scope; result is `init=False`, never caller supplied.
+All records retain metadata/receipt provenance. Direct construction/encoding
+checks consistent assertions without archive existence or source authentication.
+
+`build_universe_listing_replay(archive, manifest)` loads every history through
+its typed get API, verifying the whole metadata/accepted-receipt/payload graph.
+Empty collections include no unmentioned data. An empty standalone build checks
+the archive argument type, not current filesystem liveness; put/get validate the
+root through outer archive I/O. No eligible supplied history and selected negative
+assertions remain distinct, without proving real-world absence or completeness.
+
+Schema 1 canonical compact sorted ASCII JSON uses
+`historical-universe-listing-replay-v1`, the complete manifest (six-fraction UTC
+`Z` times) and a computed report. `membership_selections` contains selected history
+digests and nullable zero-based `matched_interval_index` in stable-security order,
+including negatives. `listing_lookups` contains exact `security_id`, nullable
+selected listing digest and nullable interval index, one per asserted member.
+Indices address the original ordered history tuple. Null listing digest means no
+eligible supplied history; a selected digest with null index retains negative
+mapping provenance. Versions associate by full `(ObservationKey, version_id)`.
+Member/match/unresolved arrays and counts derive from the result, not redundant
+stored summaries. The literal `tests/fixtures/universe-listing-replay-v1.json`
+pins exact bytes/hash/dependency IDs and independently specified report.
+
+`encode_universe_listing_replay` writes the computed report;
+`decode_universe_listing_replay(payload, archive)` validates exact nested fields,
+strict types/nonnegative integer indices (not bool/float), duplicate keys,
+canonical timestamps/order/bytes before dependency I/O where possible. Selected
+digests must belong to the corresponding manifest without repeats; listing IDs
+must be unique/sorted and lookup count must equal matched membership count.
+Membership-row security order requires dependencies. Every history reopens,
+both catalogs/query recompute, and the whole canonical report must match. Missing,
+wrong-typed or corrupt dependencies prevent any partial result or fallback.
+
+`LocalRawArchive.put_universe_listing_replay(manifest)` publishes one canonical
+object last, creating no dependencies; `get_universe_listing_replay(digest)`
+verifies and recomputes it. `UniverseListingReplayFormatError` is a standalone
+`ValueError`; `UniverseListingReplayMissingError` and
+`UniverseListingReplayCorruptError` inherit `RawArchiveError`. Dependency history,
+metadata, receipt, payload and filesystem errors propagate unchanged. Existing
+no-replace, pre/post-link cleanup and verified retry semantics apply without
+repair, crash durability or recovery. Callers retain the digest.
+
+Valid changed scope/dependencies with a correct report form new assertions.
+Policy/report equality detects format/query drift, not authenticated source
+parsing, rights, completeness or executable/research reproducibility. This adds
+no code/config/environment pins, complete experiment collector, evaluable
+snapshot, market bars/actions/transforms, operational processing or strategy/
+execution behavior. All M1 gates remain open. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

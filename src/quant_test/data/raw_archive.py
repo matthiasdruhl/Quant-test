@@ -57,6 +57,14 @@ from quant_test.data.receipts import (
     decode_receipt,
     encode_receipt,
 )
+from quant_test.data.universe_listing_replays import (
+    UniverseListingReplay,
+    UniverseListingReplayFormatError,
+    UniverseListingReplayManifest,
+    build_universe_listing_replay,
+    decode_universe_listing_replay,
+    encode_universe_listing_replay,
+)
 from quant_test.data.universes import MembershipHistory
 from quant_test.data.versions import ObservationVersion
 
@@ -123,6 +131,14 @@ class MembershipHistoryRecordMissingError(RawArchiveError):
 
 class MembershipHistoryRecordCorruptError(RawArchiveError):
     """Membership assertion checksum, schema, policy or consistency is invalid."""
+
+
+class UniverseListingReplayMissingError(RawArchiveError):
+    """The explicitly requested universe-listing replay does not exist."""
+
+
+class UniverseListingReplayCorruptError(RawArchiveError):
+    """Replay checksum, schema, policy or recomputed report is invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -429,6 +445,36 @@ class LocalRawArchive:
         except ListingHistoryRecordFormatError as error:
             raise ListingHistoryRecordCorruptError(
                 f"listing history record format failed: {listing_history_record_sha256}"
+            ) from error
+
+    def put_universe_listing_replay(self, manifest: UniverseListingReplayManifest) -> str:
+        """Verify the complete explicit graph, then publish one computed replay last."""
+        replay = build_universe_listing_replay(self, manifest)
+        encoded = encode_universe_listing_replay(replay)
+        digest = replay.universe_listing_replay_sha256
+        self.put(digest, encoded)
+        return digest
+
+    def get_universe_listing_replay(
+        self, universe_listing_replay_sha256: str
+    ) -> UniverseListingReplay:
+        """Reopen all histories and recompute the exact pinned historical query."""
+        _require_digest(universe_listing_replay_sha256)
+        try:
+            encoded = self.get(universe_listing_replay_sha256)
+        except PayloadMissingError as error:
+            raise UniverseListingReplayMissingError(
+                f"universe listing replay missing: {universe_listing_replay_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise UniverseListingReplayCorruptError(
+                f"universe listing replay checksum failed: {universe_listing_replay_sha256}"
+            ) from error
+        try:
+            return decode_universe_listing_replay(encoded, self)
+        except UniverseListingReplayFormatError as error:
+            raise UniverseListingReplayCorruptError(
+                f"universe listing replay format failed: {universe_listing_replay_sha256}"
             ) from error
 
     def put_membership_history_record(

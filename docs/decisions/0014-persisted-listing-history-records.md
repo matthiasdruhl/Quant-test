@@ -3,6 +3,11 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-10
 
+**Subsequent consumer:** [ADR 0016](0016-historical-universe-listing-replay.md)
+pins explicit listing/member record sets and query scope, rejects conflicting
+catalog identities and recomputes the join report. The individual-record scope
+below remains unchanged.
+
 ## Context
 
 Historical listing identity already has an in-memory complete-replacement

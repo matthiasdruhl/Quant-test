@@ -2,7 +2,7 @@
 
 A long-term, **research-first** quantitative equities platform. Initial focus: reproducible U.S. stock swing-trading research, not live trading.
 
-> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, historical catalogs, raw payload/receipt storage with quality counts, receipt-linked observation metadata and immutable version-catalog inventories are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
+> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, historical catalogs, raw payload/receipt storage with quality counts, receipt-linked metadata/history records, immutable version-catalog inventories and historical universe-listing replay are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
 
 ## Design priorities
 
@@ -152,7 +152,7 @@ existing matching observation record. Reopen verifies that metadata/receipt/
 payload chain and reconstructs the current complete-replacement listing contract,
 including empty replacements and negative lookup provenance. The link does not
 prove an adapter parsed intervals correctly or establish source completeness.
-Consumer-facing query/replay artifacts remain separate work; see
+See
 [ADR 0014](docs/decisions/0014-persisted-listing-history-records.md).
 
 Membership-history records persist an exact universe ID and ordered intervals
@@ -161,6 +161,16 @@ provenance semantics and composes with reopened listing histories through the
 existing stable-ID join. The entire universe suffix, including colons and spaces,
 is preserved. This proves neither source parsing nor real-world universe coverage;
 see [ADR 0015](docs/decisions/0015-persisted-membership-history-records.md).
+
+Historical universe-listing replay pins explicit sorted listing/member record
+sets, exact source/universe/venue filters and common effective/decision times.
+Reopen verifies the whole dependency graph and recomputes the existing join,
+retaining selected negative provenance and unresolved stable IDs. A canonical
+report pins selected history digests and original interval indices; ambiguous
+catalog identities reject before query filtering. This is an assertion replay,
+without source authentication, code/config/environment pins or an evaluable
+dataset snapshot. See
+[ADR 0016](docs/decisions/0016-historical-universe-listing-replay.md).
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 

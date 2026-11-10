@@ -7,6 +7,8 @@
 retains individual exact-universe membership assertions under pinned observation
 metadata. The original in-memory scope below remains unchanged; persistence adds
 no source authentication, coverage guarantee or evaluable dataset snapshot.
+[ADR 0016](0016-historical-universe-listing-replay.md) subsequently pins explicit
+record sets/query scope and recomputes the same join after graph verification.
 
 ## Context
 

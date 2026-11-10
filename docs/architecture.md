@@ -105,8 +105,8 @@ existing observation-record digest. The supplied full version must match through
 the public metadata normalization boundary; interval text and tuple order remain
 exact. Reopen verifies metadata/receipt/payload dependencies and reconstructs the
 existing `ListingHistory` invariants. This preserves assertions and query
-provenance, without proving source parsing, completeness or identity. There is no
-listing catalog inventory or membership persistence in this slice. See
+provenance, without proving source parsing, completeness or identity. Individual
+listing records supply no global catalog index. See
 [ADR 0014](decisions/0014-persisted-listing-history-records.md).
 
 `data.universes` adds source-specific complete replacement membership histories
@@ -124,8 +124,18 @@ universe-ID suffix remain exact. Reopen verifies metadata, accepted receipt and
 payload before reconstructing the current membership contract. Reopened histories
 join independently selected listing histories without dropping delisted or
 unresolved members. This adds no source authentication, universe completeness or
-consumer replay artifact. See
+provider-backed acceptance. See
 [ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
+`data.universe_listing_replays` pins explicit sorted listing/member record sets
+and exact historical universe/source/venue/E/D scope. It reopens every dependency,
+validates both whole catalogs before filtering, computes the existing stable-ID
+join and requires exact canonical report equality. Selected history digests and
+original tuple indices retain negative as well as positive context; unresolved
+members remain explicit. The result is computed only, not caller-supplied. This
+adds one consumer assertion artifact without source authentication, code/config/
+environment collection or an evaluable dataset snapshot. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 

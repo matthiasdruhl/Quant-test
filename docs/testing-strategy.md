@@ -146,6 +146,23 @@ mechanical references prove neither source parsing nor real-world universe
 completeness. See
 [ADR 0015](decisions/0015-persisted-membership-history-records.md).
 
+Universe-listing replay references pin independent literal artifact bytes/hash,
+dependency IDs and selected interval indices, then reopen a fresh archive. Cases
+cover independent release/correction cutoffs, selected negatives/empty per-key
+replacements, missing versus selected-negative mappings, unresolved delistings,
+ticker reuse and equal symbols on distinct stable IDs. Original unsorted tuple
+indices, full key/version association, exact filters, immutable sorted membership,
+empty collections and scalar UTC/timezone/fold/gap/overflow boundaries are tested.
+Both whole catalogs reject future/irrelevant contradictions before filtering.
+Strict schema/report/type/order/canonical tampering and statically impossible
+reports reject before dependency reads where possible; recomputed equality catches
+semantic report drift. Every missing/corrupt graph node and wrong-typed reference
+fails without partial joins, fallback or repair. Dependency-first and injected
+pre/post-publication faults preserve archive retry semantics. Valid changed
+queries/dependencies with correct reports remain new assertions, not proof of
+source truth or complete research reproducibility. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
 history scope. The local archive persists exact payloads, raw receipt assertions/
 outcomes, individually linked version assertions and explicit metadata inventories;
