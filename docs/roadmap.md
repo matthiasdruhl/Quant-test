@@ -21,6 +21,9 @@ The [proposed Databento Security Master source contract](sources/databento-secur
 records a first listing-history candidate, its documentation evidence and the
 rights, availability, identity and completeness questions blocking validated
 ingestion. This is qualification work, not a selected provider or closed gate.
+On 2026-11-10 the owner reported no existing provider/dataset entitlement for
+research and archival use; source selection, rights and qualification evidence
+remain external requirements for provider integration.
 
 - [ ] Security master with delisting/history.
 - [ ] Licensed OHLCV, corporate actions, data provenance and replay fixtures.
@@ -63,6 +66,12 @@ record digests, reverify the complete dependency graph and reconstruct historica
 selection after validating combined identity/rank/availability rules. They carry
 no query cutoff, coverage or source-authenticity guarantee and are not evaluable
 dataset snapshots. See [ADR 0013](decisions/0013-version-catalog-inventories.md).
+Individual listing-history records now retain explicit ordered interval assertions
+under matching pinned observation metadata and reverify the full receipt/payload
+chain on reopen. Existing replacement and historical listing query semantics
+remain intact, without authenticating source parsing or complete source scope.
+Listing catalog inventories and membership persistence remain separate work; see
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.

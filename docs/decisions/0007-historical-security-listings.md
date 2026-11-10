@@ -3,6 +3,11 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-09
 
+**Subsequent persistence:** [ADR 0014](0014-persisted-listing-history-records.md)
+retains individual ordered listing-history assertions under pinned observation
+metadata. The original in-memory scope below remains unchanged; persistence proves
+neither provider parsing, stable identity nor complete source coverage.
+
 ## Context
 
 A ticker is a display symbol, not a permanent security identity. A source may

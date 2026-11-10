@@ -147,6 +147,14 @@ existing `VersionCatalog` rules. Records retain their exact receipt provenance;
 source authentication, coverage guarantee or evaluable dataset snapshot. See
 [ADR 0013](docs/decisions/0013-version-catalog-inventories.md).
 
+Listing-history records retain explicitly supplied ordered intervals against an
+existing matching observation record. Reopen verifies that metadata/receipt/
+payload chain and reconstructs the current complete-replacement listing contract,
+including empty replacements and negative lookup provenance. The link does not
+prove an adapter parsed intervals correctly or establish source completeness.
+Membership persistence and listing catalog inventories remain separate work; see
+[ADR 0014](docs/decisions/0014-persisted-listing-history-records.md).
+
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 
 ## Safety and scope

@@ -100,6 +100,15 @@ time and retain selected provenance even when no interval matches. This is not
 a complete security master or coverage guarantee;
 see [ADR 0007](decisions/0007-historical-security-listings.md).
 
+`data.listing_records` retains one explicit complete listing history against an
+existing observation-record digest. The supplied full version must match through
+the public metadata normalization boundary; interval text and tuple order remain
+exact. Reopen verifies metadata/receipt/payload dependencies and reconstructs the
+existing `ListingHistory` invariants. This preserves assertions and query
+provenance, without proving source parsing, completeness or identity. There is no
+listing catalog inventory or membership persistence in this slice. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+
 `data.universes` adds source-specific complete replacement membership histories
 per stable security/universe. Historical membership queries retain both asserted
 members and selected negative provenance. The listing join independently selects

@@ -324,6 +324,56 @@ environment pins, transform lineage, processing evidence or completeness report.
 It is not an evaluable dataset snapshot. See
 [ADR 0013](decisions/0013-version-catalog-inventories.md).
 
+### Persisted listing-history assertions
+
+`data.listing_records.ListingHistoryRecord(history, observation_record)` requires
+an explicit `ListingHistory` and `ReceiptLinkedVersion`. The supplied history's
+full version is normalized through the public ADR 0012 metadata boundary and its
+canonical observation-record bytes must match the referenced record, including
+rank, key, provenance and all timestamps. This does not discard a different
+supplied version or infer a version from admission. Returned records retain both
+the normalized history and exact metadata/receipt provenance.
+
+Intervals are revalidated through existing public listing constructors. Exact
+issuer/symbol/venue/currency/end-reason text and the caller's interval tuple order
+are preserved. The fixed `listing-history` key, all-venue complete replacement,
+UTC half-open intervals, no overlaps per security/venue and explicit empty
+replacement semantics remain unchanged. The interval constructor has already
+normalized original zones to UTC; persistence does not recover those original
+representations. At this narrower codec boundary, endpoints must be standard UTC
+datetimes and normalize `fold=0`. Their canonical strings use six fractional
+digits and `Z`. Existing in-memory constructors are unchanged.
+
+`build_listing_history_record(archive, history, observation_record_sha256)`
+verifies the existing observation record, accepted receipt and exact payload
+before version correspondence checks. `encode_listing_history_record` writes
+schema-1 canonical ASCII JSON with `receipt-linked-listing-history-v1`, the pinned
+observation-record digest and ordered interval fields; the version remains in its
+content-addressed dependency. Direct construction/encoding validates assertions,
+not dependency existence or source truth.
+`decode_listing_history_record(payload, archive)` strictly parses schemas/policies,
+field sets, duplicate keys, types, canonical UTC spellings and bytes, then verifies
+dependencies and reconstructs the complete history. The literal reference chain
+is `tests/fixtures/listing-receipt-v1.json`, `listing-observation-record-v1.json`
+and `listing-history-record-v1.json`.
+
+`LocalRawArchive.put_listing_history_record(history, observation_record_sha256)`
+publishes one listing assertion last and returns its digest, creating no metadata,
+receipt or payload. `get_listing_history_record(digest)` verifies the exact listing
+record and every dependency. `ListingHistoryRecordFormatError` is the standalone
+codec `ValueError`; archive loads distinguish `ListingHistoryRecordMissingError`
+and `ListingHistoryRecordCorruptError` under `RawArchiveError`. Dependency errors
+propagate unchanged. Existing no-replace, pre/post-link failure and retry limits
+apply without crash durability, recovery, fallback or repair.
+
+Valid changed intervals/order or a reference to another fully valid listing
+version create new assertions. Their hashes do not prove parsing from raw bytes,
+complete source scope or truthful identity. Conflicting histories may reference
+one version; a future collection boundary must reject conflicting identities.
+Callers retain listing digests. No listing inventory, membership serialization,
+coverage report, provider acceptance or evaluable dataset snapshot is added. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.
 

@@ -22,6 +22,14 @@ from quant_test.data.catalog_inventories import (
     decode_version_catalog_inventory,
     encode_version_catalog_inventory,
 )
+from quant_test.data.listing_records import (
+    ListingHistoryRecord,
+    ListingHistoryRecordFormatError,
+    build_listing_history_record,
+    decode_listing_history_record,
+    encode_listing_history_record,
+)
+from quant_test.data.listings import ListingHistory
 from quant_test.data.observation_records import (
     ObservationRecordFormatError,
     ReceiptLinkedVersion,
@@ -91,6 +99,14 @@ class VersionCatalogInventoryMissingError(RawArchiveError):
 
 class VersionCatalogInventoryCorruptError(RawArchiveError):
     """Inventory checksum, schema, policy or catalog consistency is invalid."""
+
+
+class ListingHistoryRecordMissingError(RawArchiveError):
+    """The explicitly requested listing-history assertion object does not exist."""
+
+
+class ListingHistoryRecordCorruptError(RawArchiveError):
+    """Listing assertion checksum, schema, policy or consistency is invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -365,4 +381,36 @@ class LocalRawArchive:
         except VersionCatalogInventoryFormatError as error:
             raise VersionCatalogInventoryCorruptError(
                 f"version catalog inventory format failed: {version_catalog_inventory_sha256}"
+            ) from error
+
+    def put_listing_history_record(
+        self, history: ListingHistory, observation_record_sha256: str
+    ) -> str:
+        """Verify pinned metadata and publish one explicit listing assertion last."""
+        record = build_listing_history_record(self, history, observation_record_sha256)
+        encoded = encode_listing_history_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_listing_history_record(
+        self, listing_history_record_sha256: str
+    ) -> ListingHistoryRecord:
+        """Verify listing assertions and all metadata/receipt/payload dependencies."""
+        _require_digest(listing_history_record_sha256)
+        try:
+            encoded = self.get(listing_history_record_sha256)
+        except PayloadMissingError as error:
+            raise ListingHistoryRecordMissingError(
+                f"listing history record missing: {listing_history_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise ListingHistoryRecordCorruptError(
+                f"listing history record checksum failed: {listing_history_record_sha256}"
+            ) from error
+        try:
+            return decode_listing_history_record(encoded, self)
+        except ListingHistoryRecordFormatError as error:
+            raise ListingHistoryRecordCorruptError(
+                f"listing history record format failed: {listing_history_record_sha256}"
             ) from error

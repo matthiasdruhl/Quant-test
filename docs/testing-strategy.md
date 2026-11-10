@@ -121,6 +121,18 @@ post-link cleanup/directory-close retry semantics. These inventories make no
 provider coverage, source authentication or evaluable dataset claim. See
 [ADR 0013](decisions/0013-version-catalog-inventories.md).
 
+Listing-history record references independently pin a fresh literal listing-key
+receipt/observation/listing byte-and-hash chain. Reopened histories exercise rename,
+delist, late correction, empty replacement, negative provenance, ticker reuse and
+multiple venues under existing effective/decision cutoffs. Tests cover all supplied
+version mismatches, exact interval text/order, offset and DST semantics, standard
+endpoint type/fold normalization, strict nested field/type/schema/policy/canonical
+tampering and every selected dependency failure. Valid changed interval/reference
+assertions remain distinct and do not claim source parsing authentication.
+Injected creation/write/close/verify/link and post-link cleanup/directory-close
+failures retain archive publication/retry semantics. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
 history scope. The local archive persists exact payloads, raw receipt assertions/
 outcomes, individually linked version assertions and explicit metadata inventories;
