@@ -184,7 +184,10 @@ Manifest tampering, seeded/editable/duplicate inventories, process failures,
 incorrect import/platform provenance, zero tests, staged/input mutation and
 publication failures prevent success. Process doubles test sequencing only;
 executable isolated probes exercise the observation code and explicit development
-script imports from outside the checkout without adding source paths.
+script imports from outside the checkout without adding source paths. A real uv
+dry-run of the generated consumer flags checks CLI compatibility without
+installing a synthetic unit wheel; the mutually exclusive build aliases cannot
+be combined. This probe is not complete replay acceptance.
 
 The complete positive case is the separate CI verifier invocation after real
 hash-verified wheel materialization and package build: capture/read back, fresh

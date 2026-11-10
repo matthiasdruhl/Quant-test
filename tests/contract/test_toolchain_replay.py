@@ -720,12 +720,13 @@ def test_process_double_verifies_offline_exact_plan_order_and_report_readback(
         "--no-cache",
         "--no-config",
         "--no-python-downloads",
-        "--no-build",
+        "--only-binary=:all:",
         "--require-hashes",
         "--reinstall",
         "--strict",
     ):
         assert flag in install
+    assert "--no-build" not in install  # Alias conflicts with --only-binary in uv 0.13.5.
     suite = next(argv for argv in calls if "pytest" in argv)
     assert "-I" in suite and "--import-mode=importlib" in suite
     assert str(unit_inputs.source_root / "tests") in suite
@@ -993,3 +994,56 @@ def test_actual_origin_probe_rejects_module_outside_installed_site_packages(tmp_
     )
     assert result.returncode != 0
     assert "Source or host import fallback" in result.stderr
+
+
+def test_real_uv_accepts_consumer_flag_combination_without_installing_unit_wheel(
+    unit_inputs: Any, monkeypatch: Any, tmp_path: Path
+) -> None:
+    # Capture the production installer argv through sequencing doubles, then pass
+    # its actual flag combination to uv. Only interpreter/plan paths change, and
+    # --dry-run prevents installing this minimal parsing-only ZIP unit fixture.
+    prepared = prepare(unit_inputs)
+    calls = fake_consumer_processes(unit_inputs, prepared, monkeypatch)
+    verifier.offline_consumer(unit_inputs, prepared)
+    command = next(argv.copy() for argv in calls if "install" in argv)
+    assert "--only-binary=:all:" in command and "--no-build" not in command
+    wheel = tmp_path.resolve() / "probe_demo-1-py3-none-any.whl"
+    payload = wheel_bytes("probe-demo", "1")
+    wheel.write_bytes(payload)
+    plan = tmp_path.resolve() / "probe-requirements.txt"
+    plan.write_text(
+        f"{wheel.as_uri()} --hash=sha256:{hashlib.sha256(payload).hexdigest()}\n",
+        encoding="ascii",
+    )
+    command[command.index("--python") + 1] = sys.executable
+    command[command.index("-r") + 1] = str(plan)
+    command.append("--dry-run")
+    inventory_command = [sys.executable, "-I", "-c", verifier.INVENTORY_CODE]
+    before = subprocess.run(
+        inventory_command,
+        cwd=tmp_path,
+        env=verifier.controlled_environment(),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    resolved = subprocess.run(
+        command,
+        cwd=tmp_path,
+        env=verifier.controlled_environment(),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert resolved.returncode == 0, resolved.stdout + resolved.stderr
+    assert "probe-demo" in resolved.stdout + resolved.stderr
+    after = subprocess.run(
+        inventory_command,
+        cwd=tmp_path,
+        env=verifier.controlled_environment(),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert json.loads(after.stdout) == json.loads(before.stdout)
+    assert not any(item["name"] == "probe-demo" for item in json.loads(after.stdout))

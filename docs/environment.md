@@ -84,7 +84,8 @@ Equivalent `capture`/`replay` CLI arguments are listed in the ADR and each
 subcommand's `--help`. Capture publishes and reopens canonical input bytes through
 the existing trusted local archive; it alone is not acceptance. Replay reopens
 all inputs, installs exact staged wheel paths/hashes in an unseeded temporary
-environment with installer network/cache/config/downloads/builds disabled, checks
+environment with installer network/cache/config/downloads disabled and
+`--only-binary=:all:` prohibiting source-distribution builds, checks
 exact installed inventory and `pip check`, verifies installed import origins, and
 runs the actual repository suite from unrelated scratch space with isolated
 Python/importlib mode. It requires positive passing test counts and rechecks

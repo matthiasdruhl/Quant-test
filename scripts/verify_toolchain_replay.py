@@ -699,7 +699,6 @@ def offline_consumer(inputs: ReplayInputs, prepared: PreparedInputs) -> dict[str
                 "--no-cache",
                 "--no-config",
                 "--no-python-downloads",
-                "--no-build",
                 "--only-binary=:all:",
                 "--require-hashes",
                 "--reinstall",

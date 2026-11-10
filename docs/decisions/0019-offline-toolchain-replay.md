@@ -238,9 +238,15 @@ remove candidate selection ambiguity; manifest identity remains relocatable.
 ```text
 uv pip install --python <new-venv-python>
   --offline --no-index --no-cache --no-config --no-python-downloads
-  --no-build --only-binary=:all: --require-hashes --reinstall --strict
+  --only-binary=:all: --require-hashes --reinstall --strict
   -r <generated-exact-wheel-plan>
 ```
+
+In uv 0.13.5, `--no-build` is an alias for `--only-binary=:all:` and supplying
+both is rejected as mutually exclusive. Use only the latter: it requires wheels
+and prohibits source-distribution builds. The strict preflight and generated
+exact-wheel plan admit no source or editable requirements, so uv's documented
+editable-build exception cannot apply. Caches remain disabled.
 
 These flags do not constitute a hostile-code network sandbox. They disable
 installer network resolution/downloads/builds. The local project/wheels/tests are
