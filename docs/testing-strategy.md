@@ -173,6 +173,20 @@ holdout access control, backtest correctness, and financial invariants remain
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
+## Proposed M2 ledger references
+
+[ADR 0017](decisions/0017-explicit-reference-ledger.md) and the
+[five reference scenarios](m2-reference-ledger-v1.md) provide reviewable proposed
+units, fill/settlement arithmetic, reservations, identity/retry behavior and
+explicit valuation inputs. They are hand-calculated specifications, not executed
+ledger tests or accepted financial defaults. The human-approval requirement below
+applies before runtime implementation: record owner approval of the exact
+revision's five decisions, scope and references. After approval, a separate
+implementation must add independent executable scenarios and negative invariants,
+then receive independent review and exact-revision CI. Existing checks on this
+docs-only proposal verify the repository, not accounting runtime or milestone
+acceptance.
+
 ## Pull request acceptance
 - Small, coherent task and explicit non-goals.
 - Tests covering normal and failure modes.

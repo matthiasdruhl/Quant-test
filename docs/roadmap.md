@@ -102,6 +102,15 @@ M1 acceptance evidence. The [documentation audit](documentation-audit.md) record
 the separate local checks and review limitations.
 
 ## M2 — Backtester and accounting
+
+The [explicit-fill reference-ledger proposal](decisions/0017-explicit-reference-ledger.md)
+and its [five arithmetic reference scenarios](m2-reference-ledger-v1.md) are ready
+for review, not approved conventions or runtime implementation. They propose
+units, fill-time recognition, reservations/sellable shares, costs and explicit
+valuation. Owner approval of the exact revision, all five decisions, scope and
+reference scenarios is required before financial runtime code. M1 remains active;
+all M1 and M2 acceptance gates remain open.
+
 - [ ] Reference ledger scenarios pass.
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
 - [ ] Future-data trap tests fail correctly.

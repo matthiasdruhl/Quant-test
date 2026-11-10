@@ -139,6 +139,16 @@ environment collection or an evaluable dataset snapshot. See
 
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
+## Proposed accounting boundary
+
+[ADR 0017](decisions/0017-explicit-reference-ledger.md) and its
+[reference specification](m2-reference-ledger-v1.md) propose a pure explicit-fill
+ledger with declared units, obligations, reservations and valuation assertions.
+This is a docs-only proposal requiring owner approval of the exact financial
+choices before implementation. The backtest package still contains only its
+boundary docstring; no fill simulator, ledger, broker or trade-authorizing path
+is implemented. M1 remains active and no milestone gate closes through this work.
+
 ## Execution boundary
 Research, paper, and eventual live modes share strategy logic and risk policy contracts but **do not share credentials, mutable account state, or unapproved deployment paths**. Live mode does not exist in the scaffold. A future live implementation needs explicit owner authorization, external reconciliation, independent kill switch, and negative-path tests.
 

@@ -174,6 +174,11 @@ dataset snapshot. See
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 
+The [M2 reference-ledger proposal](docs/decisions/0017-explicit-reference-ledger.md)
+and [five arithmetic scenarios](docs/m2-reference-ledger-v1.md) make the first
+accounting decisions reviewable. They remain Proposed and require explicit owner
+approval before financial runtime implementation; no ledger or simulator is added.
+
 ## Safety and scope
 
 - Live trading is **not implemented** and must not be added without an explicit design and authorization review.
