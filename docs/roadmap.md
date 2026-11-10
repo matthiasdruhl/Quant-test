@@ -117,6 +117,15 @@ all M1 and M2 acceptance gates remain open.
 - [ ] Runs reproducible by configuration and dataset revision.
 
 ## M3 — Strategy and statistical evaluation
+
+The long-only target quantity/lifecycle subset now has immutable Decimal
+proposals, full caller-context assertion checks and globally validated replacement
+histories with half-open expiry and no fallback. This is partial progress under
+[ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md), not a complete
+strategy output, allocator, sizing policy, evaluation runner or authenticated
+snapshot/operational receipt gate. The broader signed design and all M3 acceptance
+gates remain open; M1 remains active.
+
 - [ ] Simple momentum/reversion baselines, no invented P&L.
 - [ ] Benchmark, chronological validation, holdout controls.
 - [ ] Target units, replacement/expiry semantics, allocation, and sizing reference fixtures pass.

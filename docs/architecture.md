@@ -1,8 +1,9 @@
 # Architecture
 
 **Status:** design baseline with implemented `core.time` and `data` primitives
-described below. The research, backtest, strategies, intelligence, portfolio, and
-execution packages contain only docstrings reserving future module boundaries.
+described below, plus the narrow `strategies.targets` quantity/lifecycle boundary.
+The research, backtest, intelligence, portfolio and execution packages contain
+only docstrings reserving future module boundaries; strategy runners remain future.
 Review architectural changes through ADRs. M1 is the active milestone; its
 acceptance gates remain open in the [roadmap](roadmap.md#m1--point-in-time-market-data).
 
@@ -138,6 +139,20 @@ environment collection or an evaluable dataset snapshot. See
 [ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
+
+## Target quantity and lifecycle boundary
+
+`strategies.targets` implements only immutable explicitly long-only target
+proposals, full expected caller-context matching and pure per-stream lifecycle
+selection under [ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md).
+Required Decimal fractions are neither rescaled nor converted to holdings.
+Whole histories validate IDs, decision ties and per-role snapshot consistency
+before querying; latest decision selection precedes expiry and never falls back.
+Selected provenance distinguishes no batch, active empty and expired assertions.
+Snapshot identities/usability and decision timelines are caller assertions, not
+source lineage, actual batch arrival, operational receipt or current portfolio
+proof. The broader signed strategy-output design remains future, as do strategy
+runners, allocation, limits, valuation, orders and accounting conversion.
 
 ## Proposed accounting boundary
 

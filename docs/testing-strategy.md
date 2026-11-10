@@ -173,6 +173,24 @@ holdout access control, backtest correctness, and financial invariants remain
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
+## Target quantity and lifecycle references
+
+`strategies.targets` cases independently specify A .10/B .20 replaced by A .05,
+stream isolation, explicit zero/active empty distinctions, future decisions,
+half-open expiry and latest-expired selection without fallback. Tests cover every
+expected context field, per-role snapshot identity, global future batch conflicts/
+decision ties, normalized retries retaining first assertions and immutable input
+snapshots. Decimal validation exercises explicit units/types, sNaN/NaN/infinity,
+huge exponents and ambient precision/traps without arithmetic or rescaling.
+Real-time cases cover equivalent offsets, keyed-zone reproduction, folds, gaps,
+unsupported scalar/container values and UTC overflow. Direct selections validate
+correspondence and derive status/targets but do not prove latest history selection.
+Cross-module references keep source/operational availability distinct and show
+that a retained replay digest is only a caller snapshot assertion here. These
+cases do not verify source truth, actual target arrival/current portfolio, sizing,
+allocation, accounting or strategy performance. See
+[ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md).
+
 ## Proposed M2 ledger references
 
 [ADR 0017](decisions/0017-explicit-reference-ledger.md) and the

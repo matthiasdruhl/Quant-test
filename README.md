@@ -35,7 +35,7 @@ src/quant_test/
   data/          # Temporal catalogs, archive, receipts, linked metadata records
   research/      # Planned: features, experiment registry, evaluation
   backtest/      # Planned: simulation and accounting
-  strategies/    # Planned: pure strategy implementations
+  strategies/    # Long-only target batches/lifecycle; strategy runners planned
   intelligence/  # Planned: macro, filings, news, alternative data
   portfolio/     # Planned: allocation and risk decisions
   execution/     # Planned: paper/live broker adapters; no execution path
@@ -178,6 +178,15 @@ The [M2 reference-ledger proposal](docs/decisions/0017-explicit-reference-ledger
 and [five arithmetic scenarios](docs/m2-reference-ledger-v1.md) make the first
 accounting decisions reviewable. They remain Proposed and require explicit owner
 approval before financial runtime implementation; no ledger or simulator is added.
+
+`strategies.targets` implements an immutable long-only quantity/lifecycle subset:
+required Decimal equity fractions, explicit caller snapshot/context assertions,
+and complete per-run/strategy/version replacement histories. Selection retains
+active/expired provenance, distinguishes active empty batches and never falls
+back after a newer expiry. It queries asserted decision times, without proving
+actual arrival, source availability or current portfolio state. No strategy
+runner, allocation, accounting conversion, portfolio limits or orders are added.
+See [ADR 0018](docs/decisions/0018-immutable-target-batch-lifecycle.md).
 
 ## Safety and scope
 
