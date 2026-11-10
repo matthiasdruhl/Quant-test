@@ -53,6 +53,11 @@ interfaces remain planned. Cross-module temporal/archive cases currently live in
 existing suites from future test layers. See the dated
 [documentation audit](docs/documentation-audit.md) for review scope and evidence.
 
+The [proposed first-source contract](docs/sources/databento-security-master.md)
+assesses Databento Security Master as a possible listing-history candidate. Source
+selection, usage rights and required temporal evidence remain unresolved; no
+provider integration is approved or implemented.
+
 ## Local development
 
 Use the exact Python baseline in [.python-version](.python-version), currently 3.11.17. Package metadata permits newer interpreters, but only the pinned baseline is covered by the reproducibility contract and CI. Start from a fresh virtual environment:

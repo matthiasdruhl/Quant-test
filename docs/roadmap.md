@@ -17,6 +17,11 @@ The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verifi
 **Active milestone.** Implemented slices below are partial progress; all five
 acceptance gates remain open.
 
+The [proposed Databento Security Master source contract](sources/databento-security-master.md)
+records a first listing-history candidate, its documentation evidence and the
+rights, availability, identity and completeness questions blocking validated
+ingestion. This is qualification work, not a selected provider or closed gate.
+
 - [ ] Security master with delisting/history.
 - [ ] Licensed OHLCV, corporate actions, data provenance and replay fixtures.
 - [ ] Source availability is tested against decision timestamps.
