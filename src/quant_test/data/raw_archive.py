@@ -15,6 +15,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from re import fullmatch
 
+from quant_test.data.observation_records import (
+    ObservationRecordFormatError,
+    ReceiptLinkedVersion,
+    build_observation_record,
+    decode_observation_record,
+    encode_observation_record,
+)
 from quant_test.data.receipt_sets import (
     RawReceiptSet,
     ReceiptSetFormatError,
@@ -61,6 +68,14 @@ class ReceiptSetMissingError(RawArchiveError):
 
 class ReceiptSetCorruptError(RawArchiveError):
     """Receipt-set checksum, schema, policy or recomputed report is invalid."""
+
+
+class ObservationRecordMissingError(RawArchiveError):
+    """The explicitly requested receipt-linked metadata object does not exist."""
+
+
+class ObservationRecordCorruptError(RawArchiveError):
+    """Metadata checksum, schema, policy or receipt linkage is invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -270,4 +285,36 @@ class LocalRawArchive:
         except ReceiptSetFormatError as error:
             raise ReceiptSetCorruptError(
                 f"raw receipt-set format failed: {receipt_set_sha256}"
+            ) from error
+
+    def put_observation_record(self, version: ObservationVersion, receipt_sha256: str) -> str:
+        """Verify existing receipt/payload and publish explicit metadata assertions last.
+
+        No receipt or payload is created and no accepted receipt is promoted.
+        Existing no-replace publication and post-link cleanup limits apply.
+        """
+        record = build_observation_record(self, version, receipt_sha256)
+        encoded = encode_observation_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_observation_record(self, observation_record_sha256: str) -> ReceiptLinkedVersion:
+        """Verify metadata and every dependency; never return a substitute version."""
+        _require_digest(observation_record_sha256)
+        try:
+            encoded = self.get(observation_record_sha256)
+        except PayloadMissingError as error:
+            raise ObservationRecordMissingError(
+                f"observation record missing: {observation_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise ObservationRecordCorruptError(
+                f"observation record checksum failed: {observation_record_sha256}"
+            ) from error
+        try:
+            return decode_observation_record(encoded, self)
+        except ObservationRecordFormatError as error:
+            raise ObservationRecordCorruptError(
+                f"observation record format failed: {observation_record_sha256}"
             ) from error

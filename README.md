@@ -2,7 +2,7 @@
 
 A long-term, **research-first** quantitative equities platform. Initial focus: reproducible U.S. stock swing-trading research, not live trading.
 
-> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, in-memory historical catalogs, and local raw payload/receipt storage with receipt-set quality counts are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
+> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, in-memory historical catalogs, local raw payload/receipt storage with receipt-set quality counts, and receipt-linked observation metadata records are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
 
 ## Design priorities
 
@@ -32,7 +32,7 @@ See [roadmap](docs/roadmap.md), [architecture](docs/architecture.md), [invariant
 ```text
 src/quant_test/
   core/          # Implemented timestamp availability checks
-  data/          # Temporal catalogs, raw archive, receipts, receipt sets
+  data/          # Temporal catalogs, archive, receipts, linked metadata records
   research/      # Planned: features, experiment registry, evaluation
   backtest/      # Planned: simulation and accounting
   strategies/    # Planned: pure strategy implementations
@@ -129,6 +129,15 @@ source text and unknown event time may be absent on accepted receipts. This is
 raw assertion reporting, without coverage, revision selection, validated promotion
 or an evaluable dataset snapshot. See
 [ADR 0011](docs/decisions/0011-raw-receipt-set-quality-report.md). All M1 gates remain open.
+
+Receipt-linked observation records persist a separately supplied
+`ObservationVersion` together with its exact accepted receipt reference. Publication
+and reopen verify the receipt/payload and every shared identity, provenance and
+timestamp field. Metadata timestamps normalize to canonical UTC; the receipt
+retains original claims. This checks syntactic linkage, without authenticating
+source assertions or promoting a receipt. Catalog inventories, provider ingestion
+and evaluable snapshots remain future work; see
+[ADR 0012](docs/decisions/0012-receipt-linked-observation-records.md).
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 

@@ -107,7 +107,7 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. Quarantine processing workflows, source-order proof, provider ingestion, coverage/completeness and validated metadata persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. `data.observation_records` adds individual receipt-linked metadata assertions; catalog inventories remain unimplemented. Quarantine processing workflows, source-order proof, provider ingestion and coverage/completeness remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
 
 ### Local raw payload archive
 
@@ -230,6 +230,51 @@ This is an inventory of raw assertions, without decision cutoff, revision select
 validated metadata promotion, processing evidence, transform/code/environment pins,
 source authentication or evaluable dataset snapshot. See
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
+
+### Receipt-linked observation-version records
+
+`data.observation_records.ReceiptLinkedVersion(version, receipt_sha256)` retains
+an explicit supplied `ObservationVersion` and an existing raw receipt reference.
+Direct construction/encoding validates shape only. A version is never inferred
+from an accepted receipt. `build_observation_record(archive, version, receipt_sha256)`
+reopens the exact receipt and its payload, requires accepted admission, and matches
+key, version ID, exact source URI/license text, payload digest and all four
+availability fields. Unknown event time matches only unknown event time. Source
+revision rank remains an explicit caller assertion; linkage authenticates neither
+that rank nor source, identity, license or timestamp evidence.
+
+This boundary requires standard datetimes with UTC, standard fixed offsets or
+reopenable keyed `ZoneInfo` rules. Civil times must survive a UTC roundtrip before
+normalization; gaps reject and valid folds retain distinct instants. Zone keys must
+reproduce offset/name. Out-of-range UTC conversion rejects as `ValueError`.
+Equivalent representations of one real instant are accepted. The returned version
+uses UTC with `fold=0`, while the raw receipt retains original representations.
+Ranks must be standard nonnegative `int` values: bool, float and integer subclasses
+reject at this boundary, without changing the existing in-memory constructors.
+
+`encode_observation_record` produces schema-1 canonical ASCII JSON with the full
+version fields, receipt digest and `receipt-linked-observation-v1` policy ID.
+Timestamps use UTC with six fractional digits and `Z`; only `event_at` may be null.
+`decode_observation_record(payload, archive)` rejects duplicate/unknown/missing
+fields, unsupported schemas/policies/types, alternate timestamp spellings and
+noncanonical bytes, then repeats all dependency/linkage checks. Rehashed edits
+cannot conceal mismatches. The literal schema fixture is
+`tests/fixtures/observation-record-v1.json`.
+
+`LocalRawArchive.put_observation_record(version, receipt_sha256) -> str` verifies
+existing dependencies before publishing one metadata object last, returning its
+separate digest. `get_observation_record(digest)` verifies the object and every
+dependency before returning. Neither creates receipts/payloads nor records
+processing completion. Existing `put_version/get_version` still address payloads.
+`ObservationRecordFormatError` is a standalone codec `ValueError`;
+`ObservationRecordMissingError`/`ObservationRecordCorruptError` are archive-load
+errors under `RawArchiveError`. Referenced receipt/payload/filesystem failures
+propagate unchanged. Put retains existing base publication error types.
+
+The caller retains record digests; no index, discovery, catalog inventory or
+dataset snapshot is provided. ADR 0009's trusted POSIX, no-replace and pre/post-link
+failure/retry limits apply, including no crash durability or cleanup recovery.
+See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

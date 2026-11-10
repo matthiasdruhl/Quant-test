@@ -73,6 +73,16 @@ promotion or an evaluable dataset snapshot. Empty collections explicitly report
 zero counts. Existing publication/failure assumptions apply; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
+`data.observation_records` persists explicit `ObservationVersion` assertions linked
+to an existing accepted admission receipt. The archive verifies receipt/payload
+dependencies and all shared identity, provenance and UTC instants before publishing
+metadata last, then repeats those checks on reopen. The supplied version is never
+derived from an accepted receipt alone. Canonical metadata timestamps use UTC while
+raw receipts retain original representations. This adds individual metadata
+retention, without source authentication, a catalog inventory, validated promotion
+or a dataset snapshot. See
+[ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
 `data.listings` adds an in-memory source-specific historical listing catalog.
 Complete replacement histories bind stable security IDs to effective-dated
 issuer/symbol/venue/currency intervals, including ended/delisted intervals. Queries

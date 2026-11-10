@@ -93,10 +93,25 @@ local tests imply no provider coverage, completeness, dataset snapshot, CI resul
 or crash durability; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
+Receipt-linked observation references pin independent literal canonical bytes/hash
+and every shared-field mismatch. They exercise exact text, accepted/quarantined
+receipts, unknown events, equivalent offsets, both DST folds, gaps before UTC
+normalization, unsupported datetime/integer/timezone boundaries, UTC overflow and
+keyed-zone offset/name mismatch. Rehashed nested schema/policy/type/timestamp
+tampering and duplicate/noncanonical JSON reject. Missing/corrupt/nonregular
+metadata and dependencies fail without fallback or repair. Injected creation,
+write, file-close, stage verification and link failures expose no new metadata;
+post-link cleanup/directory-close failure can leave a complete object that retry
+verifies. Reopened versions compose with existing revision cutoffs and operational
+processing gates. Explicit rank assertions remain unauthenticated; these cases
+prove linkage mechanics, not provider truth, source coverage or milestone
+acceptance. See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
-history scope. The local archive persists exact payloads and raw receipt assertions/
-outcomes; it does not implement a quarantine queue/reprocessing workflow or validated
-metadata catalogs. Provider coverage/completeness, derived lineage, target processing,
+history scope. The local archive persists exact payloads, raw receipt assertions/
+outcomes and individually linked version assertions; it does not implement a
+quarantine queue/reprocessing workflow or metadata catalog inventory. Provider
+coverage/completeness, derived lineage, target processing,
 holdout access control, backtest correctness, and financial invariants remain
 **unimplemented** and must not be marked complete.
 

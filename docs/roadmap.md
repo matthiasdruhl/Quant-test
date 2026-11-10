@@ -53,6 +53,12 @@ manifest with recomputed admission/null/precision/status/reason counts; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md). These descriptive
 counts include accepted and quarantined assertions and do not establish source
 coverage, validated observation promotion, revision selection or dataset snapshots.
+Individual receipt-linked observation records now persist explicitly supplied
+metadata assertions and verify their exact accepted raw receipt/payload linkage
+before publication and on reopen. They do not infer a version from admission or
+authenticate source rank/provenance; catalog inventories and evaluable snapshots
+remain unimplemented. See
+[ADR 0012](decisions/0012-receipt-linked-observation-records.md).
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.
