@@ -181,7 +181,9 @@ equity without injecting totals, caching marks or advancing the event cursor.
 These are arithmetic reference assertions, not actual trades, source availability
 or authenticated prices. Target conversion, broader allocation/accounting,
 corporate actions, simulation, strategies and broker/order paths remain future.
-M1 remains active and no milestone gate closes through this work.
+The [exact-revision evidence](m2-reference-ledger-evidence.md) closes only M2's
+reference-ledger scenario gate. M1 remains active; all M1/M3 and remaining M2
+gates stay open.
 
 ## Execution boundary
 Research, paper, and eventual live modes share strategy logic and risk policy contracts but **do not share credentials, mutable account state, or unapproved deployment paths**. Live mode does not exist in the scaffold. A future live implementation needs explicit owner authorization, external reconciliation, independent kill switch, and negative-path tests.

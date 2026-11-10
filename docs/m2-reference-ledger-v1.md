@@ -1,6 +1,6 @@
 # Explicit-fill reference ledger v1: approved reference specification
 
-- **Status:** Bounded v1 conventions approved; runtime verification separate
+- **Status:** Bounded v1 conventions approved; reference scenarios verified
 - **Date:** 2026-11-10
 
 This is the human-readable specification accompanying
@@ -261,5 +261,7 @@ four required checks, exact-revision CI and independent review in addition to
 the recorded exact-revision approval. This specification does not itself implement
 a simulator, source validator, experiment runner or any trade-authorizing path.
 It chooses no corporate-action, tax-lot, realized-P&L, financing or
-strategy-performance convention. It closes no
-M1 or M2 milestone gate; see the [roadmap](roadmap.md).
+strategy-performance convention. The separate
+[implementation evidence](m2-reference-ledger-evidence.md) closes only M2's
+reference-ledger scenario gate. M1 remains active, with all M1/M3 and remaining
+M2 gates open; see the [roadmap](roadmap.md).

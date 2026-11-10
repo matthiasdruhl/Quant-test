@@ -184,7 +184,9 @@ obligations and held/sellable shares. Fresh same-instant marks derive arithmetic
 equity; retries are idempotent only for identical facts and invalid transitions
 leave prior state unchanged. No actual fill/source truth, simulator, accounting
 conversion from targets, broker or order path is supplied. Financial approval is
-separate from runtime/CI acceptance; all M1/M2/M3 gates remain open.
+separate from the [exact-revision implementation evidence](docs/m2-reference-ledger-evidence.md).
+Only M2's reference-ledger scenario gate is complete; M1 remains active, with all
+M1/M3 and remaining M2 gates open.
 
 `strategies.targets` implements an immutable long-only quantity/lifecycle subset:
 required Decimal equity fractions, explicit caller snapshot/context assertions,

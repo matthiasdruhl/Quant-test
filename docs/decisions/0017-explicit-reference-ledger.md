@@ -1,6 +1,6 @@
 # ADR 0017: Explicit-fill reference ledger v1
 
-- **Status:** Bounded financial conventions accepted; runtime verification separate
+- **Status:** Bounded financial conventions accepted; reference scenarios verified
 - **Date:** 2026-11-10
 
 ## Context and approval boundary
@@ -109,7 +109,9 @@ reference specification is not a mock provider dataset or an evaluable market
 dataset. The implemented
 [M1 universe-listing replay](0016-historical-universe-listing-replay.md)
 remains an assertion consumer, not an accounting or market-data simulator.
-All M1 gates remain open; financial approval alone closes no M2 gate.
+All M1 gates remain open; financial approval alone closes no M2 gate. Separate
+[implementation evidence](../m2-reference-ledger-evidence.md) now closes only
+M2's reference-ledger scenario gate, with all remaining M2/M3 gates open.
 
 ## Technical API refinement for implementation review
 
@@ -195,3 +197,7 @@ for `ruff check .`, `ruff format --check .`, `mypy src` and `pytest`, plus the
 existing verifier's targeted mypy and exact-revision branch CI. Owner acceptance
 of the financial choices does not supply any of those results. Prose and local
 arithmetic alone are not runtime acceptance or milestone evidence.
+
+The [dated evidence record](../m2-reference-ledger-evidence.md) supplies those
+results for the pushed, unmerged ledger revision and closes only its reference
+scenario gate. It does not extend the financial approval or complete M2.

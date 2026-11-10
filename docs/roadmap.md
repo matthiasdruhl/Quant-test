@@ -112,10 +112,11 @@ reserved cash, held/sellable quantities and exact identity provenance. Fresh
 explicit marks derive arithmetic equity under the
 [unchanged five reference scenarios](m2-reference-ledger-v1.md). This adds no fill
 simulator, actual trade/source proof, target conversion, corporate-action policy,
-financing or strategy returns. M1 remains active; all M1/M2/M3 acceptance gates
-remain open pending their full review/CI evidence, not financial approval alone.
+financing or strategy returns. The [exact-revision implementation evidence](m2-reference-ledger-evidence.md)
+closes only the reference-ledger scenario gate below. M1 remains active; all
+M1/M3 and remaining M2 gates stay open. Financial approval alone closes no gate.
 
-- [ ] Reference ledger scenarios pass.
+- [x] Reference ledger scenarios pass. [Evidence](m2-reference-ledger-evidence.md#reference-scenario-acceptance).
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
 - [ ] Future-data trap tests fail correctly.
 - [ ] Runs reproducible by configuration and dataset revision.
@@ -133,9 +134,11 @@ gates remain open; M1 remains active.
 A development-only [offline toolchain verifier](decisions/0019-offline-toolchain-replay.md)
 now captures actual locked wheels and clean-source/tool observations, then
 reopens them for an unseeded offline installation and installed test consumer.
-This is partial toolchain replay infrastructure, with exact-revision platform
-acceptance evidence still required. It is not a complete experiment environment
-collector, source dataset snapshot or durable CI archive; no M1/M2/M3 gate closes.
+This is partial toolchain replay infrastructure, with
+[exact-revision platform evidence](m2-reference-ledger-evidence.md#exact-head-ci-and-offline-replay).
+It is not a complete experiment environment collector, source dataset snapshot
+or durable CI archive. The toolchain slice closes no milestone gate; the separate
+reference-ledger scenario gate has the evidence linked above.
 
 - [ ] Simple momentum/reversion baselines, no invented P&L.
 - [ ] Benchmark, chronological validation, holdout controls.

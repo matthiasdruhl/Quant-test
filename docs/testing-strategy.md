@@ -239,8 +239,10 @@ success. UTC offsets/folds/gaps, keyed-zone reproduction and overflow preserve
 real instants. Valuations neither cache marks nor advance/register accounting
 state; source availability and target conversion remain separate boundaries.
 These inputs assert reference facts, not actual fills or provider-backed prices.
-Financial approval, local executable references, independent review, exact-revision
-CI and milestone acceptance are distinct; no M1/M2/M3 gate closes from this slice.
+Financial approval, local executable references, independent review and
+exact-revision CI are distinct. Their [recorded evidence](m2-reference-ledger-evidence.md)
+closes only M2's reference-ledger scenario gate; all M1/M3 and remaining M2 gates
+stay open, with M1 active.
 New financial choices still require the approval listed below.
 
 ## Pull request acceptance
