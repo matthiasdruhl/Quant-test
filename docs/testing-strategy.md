@@ -173,6 +173,29 @@ holdout access control, backtest correctness, and financial invariants remain
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
 
+## Locked-toolchain replay references
+
+Development-verifier tests pin independent literal canonical input bytes/hash
+and strict marker/lock/wheel identity cases. Minimal ZIP fixtures exercise parsing
+only and are never installed or evidence of real lock completeness. Missing,
+extra, duplicate, unsafe or incompatible wheels, contradictory filename/metadata/
+WHEEL tags, changed lock/local hashes and source-lock disagreement fail preflight.
+Manifest tampering, seeded/editable/duplicate inventories, process failures,
+incorrect import/platform provenance, zero tests, staged/input mutation and
+publication failures prevent success. Process doubles test sequencing only;
+executable isolated probes exercise the observation code and explicit development
+script imports from outside the checkout without adding source paths.
+
+The complete positive case is the separate CI verifier invocation after real
+hash-verified wheel materialization and package build: capture/read back, fresh
+unseeded offline install, exact inventory/`pip check`, installed imports and the
+actual test suite, then postchecks/report publication. It is never recursively
+invoked from that suite. Existing `verify_hash_install.py` CLI/negative checks
+remain unchanged. Run `mypy scripts/verify_toolchain_replay.py` in addition to the
+mandatory source check. No complete experiment reproducibility, bootstrap
+security, durable retention or CI success is inferred from unit doubles or this
+configured workflow; see [ADR 0019](decisions/0019-offline-toolchain-replay.md).
+
 ## Target quantity and lifecycle references
 
 `strategies.targets` cases independently specify A .10/B .20 replaced by A .05,

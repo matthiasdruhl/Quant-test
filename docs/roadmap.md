@@ -126,6 +126,13 @@ strategy output, allocator, sizing policy, evaluation runner or authenticated
 snapshot/operational receipt gate. The broader signed design and all M3 acceptance
 gates remain open; M1 remains active.
 
+A development-only [offline toolchain verifier](decisions/0019-offline-toolchain-replay.md)
+now captures actual locked wheels and clean-source/tool observations, then
+reopens them for an unseeded offline installation and installed test consumer.
+This is partial toolchain replay infrastructure, with exact-revision platform
+acceptance evidence still required. It is not a complete experiment environment
+collector, source dataset snapshot or durable CI archive; no M1/M2/M3 gate closes.
+
 - [ ] Simple momentum/reversion baselines, no invented P&L.
 - [ ] Benchmark, chronological validation, holdout controls.
 - [ ] Target units, replacement/expiry semantics, allocation, and sizing reference fixtures pass.

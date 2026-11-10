@@ -77,11 +77,13 @@ pytest
 
 CI runs on pushes to `main` and `codex/**` branches and on pull requests. It runs
 these checks on Ubuntu and macOS, then builds/installs the wheel and checks
-hash rejection before testing the installed distribution. Branch pushes can be
+hash rejection before testing the installed distribution. It also materializes
+the actual locked wheels and replays/tests a fresh offline toolchain, logging
+input/report digests without durable CI artifact retention. Branch pushes can be
 validated before a PR is opened. Successful M0 execution
 is recorded in [M0 evidence](docs/m0-evidence.md); later implementation evidence
 does not by itself close an M1 gate. See
-[environment setup and lock updates](docs/environment.md).
+[environment setup, lock updates and offline replay](docs/environment.md).
 
 ## Implemented data primitives
 

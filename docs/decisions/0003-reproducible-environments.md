@@ -3,6 +3,11 @@
 - **Status:** Accepted for local/CI setup; experiment manifests require M3 implementation
 - **Date:** 2026-11-09
 
+**Subsequent consumer:** [ADR 0019](0019-offline-toolchain-replay.md) adds actual
+locked-wheel capture and a fresh offline installed-test consumer. It leaves
+bootstrap trust, durable retention and complete experiment manifests outside
+that narrow toolchain slice.
+
 ## Context
 Open dependency ranges and an unpinned interpreter/toolchain can change results at an unchanged source revision. The scaffold has no runtime dependencies and does not need a new environment service or storage system.
 
@@ -13,7 +18,8 @@ Use uv 0.13.5 as the recorded development-time lock generator, interpreter insta
 
 The original seeded setup allowed pip, setuptools, wheel, and packaging to satisfy locked requirements without verifying their distribution bytes. A matching installed version is insufficient evidence of integrity. The unseeded setup removes that bootstrap, and `--reinstall` requires verification even if a matching distribution is already present. An offline acceptance check using the built repository wheel requires rejection of an invalid hash for an already installed package and successful reinstallation with the correct hash. uv itself, the setup action, the interpreter, and runner images remain explicit bootstrap trust inputs outside the Python dependency lock.
 
-Experiment evidence must include the actual interpreter/OS/build, dependency/distribution provenance, lock checksum, numerical settings and source/artifact identifiers defined in `docs/environment.md`. Local exploration with a modified tree must preserve the patch and cannot become promotion evidence without clean-source replay. No manifest collector exists yet.
+Experiment evidence must include the actual interpreter/OS/build, dependency/distribution provenance, lock checksum, numerical settings and source/artifact identifiers defined in `docs/environment.md`. Local exploration with a modified tree must preserve the patch and cannot become promotion evidence without clean-source replay. No complete experiment environment-manifest collector exists yet; ADR 0019
+subsequently adds only bounded toolchain input/report capture and replay.
 
 ## Alternatives and limitations
 Ranges alone cannot reproduce resolution. Freezing only package names/versions omits distribution integrity and interpreter/native settings. A container could pin more of the environment but adds maintenance that is not yet justified; retain manifests and verify each supported platform instead. OS runner images and external indexes may change or disappear, so exact offline replay needs retained verified distributions and the matching environment. Cross-platform floating-point identity is not assumed.

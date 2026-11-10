@@ -37,7 +37,9 @@ jobs:
       - name: Ruff formatting
         run: ruff format --check .
       - name: Type check
-        run: mypy src
+        run: |
+          mypy src
+          mypy scripts/verify_toolchain_replay.py
       - name: Build and install distribution
         run: |
           python -m pip wheel --no-deps --no-build-isolation --wheel-dir dist .
@@ -47,3 +49,40 @@ jobs:
         run: python scripts/verify_hash_install.py dist/*.whl
       - name: Unit tests
         run: pytest -q
+      - name: Materialize locked wheels and replay toolchain offline
+        run: |
+          python - <<'PY'
+          import importlib.util
+          import pathlib
+          import sys
+
+          root = pathlib.Path.cwd().resolve()
+          spec = importlib.util.spec_from_file_location(
+              "ci_toolchain_replay", root / "scripts" / "verify_toolchain_replay.py"
+          )
+          module = importlib.util.module_from_spec(spec)
+          sys.modules[spec.name] = module
+          spec.loader.exec_module(module)
+          work = root / "dist" / "toolchain-replay"
+          work.mkdir()
+          reports = work / "reports"
+          reports.mkdir()
+          wheels = work / "wheels"
+          module.download_locked_wheels(root / "requirements-dev.lock", wheels)
+          local = list((root / "dist").glob("quant_test-*.whl"))
+          if len(local) != 1:
+              raise RuntimeError("Expected exactly one built local wheel")
+          inputs = module.ReplayInputs(
+              wheels, local[0], root / "requirements-dev.lock", root, reports
+          )
+          manifest = module.capture(
+              inputs,
+              module.digest(module.read_regular(inputs.lock)),
+              module.digest(module.read_regular(inputs.local_wheel)),
+          )
+          print("INPUT_MANIFEST_SHA256", manifest, flush=True)
+          print(module.read_regular(reports / manifest).decode("ascii"), flush=True)
+          report = module.replay(inputs, manifest)
+          print("REPLAY_REPORT_SHA256", report, flush=True)
+          print(module.read_regular(reports / report).decode("ascii"), flush=True)
+          PY

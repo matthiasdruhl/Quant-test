@@ -140,6 +140,14 @@ environment collection or an evaluable dataset snapshot. See
 
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
+The development-only `scripts/verify_toolchain_replay.py` consumes real locked
+wheel bytes and a built local package to verify one fresh offline toolchain.
+It pins actual inputs/host observations/clean source, runs installed-package tests
+and publishes an input manifest plus success report using the existing archive.
+This adds no runtime environment service, complete experiment manifest or durable
+CI retention; see [ADR 0019](decisions/0019-offline-toolchain-replay.md) and
+[environment replay](environment.md#full-locked-toolchain-offline-replay).
+
 ## Target quantity and lifecycle boundary
 
 `strategies.targets` implements only immutable explicitly long-only target
