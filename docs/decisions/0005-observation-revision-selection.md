@@ -10,7 +10,9 @@ slice. Effective-dated [listings](0007-historical-security-listings.md) and
 [receipt retention](0010-persisted-raw-admission-receipts.md), are now implemented
 separately. [ADR 0012](0012-receipt-linked-observation-records.md) retains individual
 supplied version assertions with verified raw receipt linkage, without creating a
-catalog inventory. Provider ingestion, validated catalog persistence and dataset snapshots
+catalog inventory. [ADR 0013](0013-version-catalog-inventories.md) adds that explicit
+inventory and revalidates the existing selector rules on reopen. Provider ingestion,
+provider-backed catalog acceptance and evaluable dataset snapshots
 remain open; see the [current contracts](../data-contracts.md).
 
 ## Context

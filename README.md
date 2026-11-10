@@ -2,7 +2,7 @@
 
 A long-term, **research-first** quantitative equities platform. Initial focus: reproducible U.S. stock swing-trading research, not live trading.
 
-> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, in-memory historical catalogs, local raw payload/receipt storage with receipt-set quality counts, and receipt-linked observation metadata records are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
+> **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, historical catalogs, raw payload/receipt storage with quality counts, receipt-linked observation metadata and immutable version-catalog inventories are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
 
 ## Design priorities
 
@@ -115,8 +115,8 @@ payload first and receipt last under a separate digest; reopen verifies both and
 recomputes admission using a strict versioned codec that preserves precision and
 DST gap/fold semantics. Receipt retention does not authenticate evidence, create
 validated observation versions, or establish completed processing. The caller
-retains receipt digests; validated metadata catalogs, quarantine workflows and
-provider ingestion remain unimplemented. The existing archive's post-publication
+retains receipt digests; provider-backed catalog acceptance, quarantine workflows
+and provider ingestion remain unimplemented. The existing archive's post-publication
 cleanup failure and no-crash-durability limits apply; see
 [ADR 0010](docs/decisions/0010-persisted-raw-admission-receipts.md).
 
@@ -135,9 +135,17 @@ Receipt-linked observation records persist a separately supplied
 and reopen verify the receipt/payload and every shared identity, provenance and
 timestamp field. Metadata timestamps normalize to canonical UTC; the receipt
 retains original claims. This checks syntactic linkage, without authenticating
-source assertions or promoting a receipt. Catalog inventories, provider ingestion
-and evaluable snapshots remain future work; see
+source assertions or promoting a receipt. Provider ingestion and evaluable
+snapshots remain future work; see
 [ADR 0012](docs/decisions/0012-receipt-linked-observation-records.md).
+
+Immutable version-catalog inventories pin an explicit sorted collection of those
+metadata record digests. Publication and reopen verify every record/receipt/payload
+and reject duplicate IDs/ranks or contradictory revision availability through the
+existing `VersionCatalog` rules. Records retain their exact receipt provenance;
+`to_catalog()` reconstructs a fresh historical selector. This adds no archive scan,
+source authentication, coverage guarantee or evaluable dataset snapshot. See
+[ADR 0013](docs/decisions/0013-version-catalog-inventories.md).
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 

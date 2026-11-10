@@ -107,10 +107,24 @@ processing gates. Explicit rank assertions remain unauthenticated; these cases
 prove linkage mechanics, not provider truth, source coverage or milestone
 acceptance. See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
 
+Version-catalog inventory references pin literal canonical manifest bytes/hash,
+explicit empty membership and invalid-archive/collection rejection before reads.
+They exercise input snapshots, digest order/provenance, manifest correspondence,
+duplicate version IDs/ranks across distinct records/receipts, contradictory
+availability, independent key partitions, equal-time rank ties and historical
+backfill boundaries after reopen. Rehashed schema/policy/type/membership tampering,
+unknown/duplicate fields, unsorted arrays and noncanonical bytes reject. Missing/
+corrupt/nonregular manifests and any record/receipt/payload failure prevent a
+complete result; raw receipts/payloads cannot enter as observation records.
+Publication fault cases preserve dependency-first ordering, pre-link failure and
+post-link cleanup/directory-close retry semantics. These inventories make no
+provider coverage, source authentication or evaluable dataset claim. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
 history scope. The local archive persists exact payloads, raw receipt assertions/
-outcomes and individually linked version assertions; it does not implement a
-quarantine queue/reprocessing workflow or metadata catalog inventory. Provider
+outcomes, individually linked version assertions and explicit metadata inventories;
+it does not implement a quarantine queue/reprocessing workflow. Provider
 coverage/completeness, derived lineage, target processing,
 holdout access control, backtest correctness, and financial invariants remain
 **unimplemented** and must not be marked complete.

@@ -56,9 +56,13 @@ coverage, validated observation promotion, revision selection or dataset snapsho
 Individual receipt-linked observation records now persist explicitly supplied
 metadata assertions and verify their exact accepted raw receipt/payload linkage
 before publication and on reopen. They do not infer a version from admission or
-authenticate source rank/provenance; catalog inventories and evaluable snapshots
-remain unimplemented. See
+authenticate source rank/provenance; evaluable snapshots remain unimplemented. See
 [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+Explicit immutable version-catalog inventories now retain selected observation
+record digests, reverify the complete dependency graph and reconstruct historical
+selection after validating combined identity/rank/availability rules. They carry
+no query cutoff, coverage or source-authenticity guarantee and are not evaluable
+dataset snapshots. See [ADR 0013](decisions/0013-version-catalog-inventories.md).
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.

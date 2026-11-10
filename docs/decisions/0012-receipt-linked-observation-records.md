@@ -3,6 +3,11 @@
 - **Status:** Proposed for M1 review
 - **Date:** 2026-11-10
 
+**Subsequent extension:** [ADR 0013](0013-version-catalog-inventories.md) adds
+explicit immutable collections of these observation-record digests and combined
+catalog validation. The individual-record scope below remains unchanged; neither
+extension authenticates source assertions or creates an evaluable dataset snapshot.
+
 ## Context
 
 `ObservationVersion` contains explicit source-version assertions but currently

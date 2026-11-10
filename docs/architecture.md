@@ -61,7 +61,7 @@ strict versioned codec preserves raw precision, text, timezone key/offset/fold,
 and recomputes the named admission policy. This persists accepted and quarantined
 assertions under ADR 0009's filesystem/failure assumptions; it does not create
 validated observation versions or authenticate evidence. Provider ingestion,
-operational processing, metadata catalogs and dataset snapshots remain
+operational processing, provider-backed catalog acceptance and dataset snapshots remain
 unimplemented. See [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 `data.receipt_sets` inventories an explicit sorted collection of receipt digests
@@ -79,9 +79,18 @@ dependencies and all shared identity, provenance and UTC instants before publish
 metadata last, then repeats those checks on reopen. The supplied version is never
 derived from an accepted receipt alone. Canonical metadata timestamps use UTC while
 raw receipts retain original representations. This adds individual metadata
-retention, without source authentication, a catalog inventory, validated promotion
+retention, without source authentication, validated promotion
 or a dataset snapshot. See
 [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
+`data.catalog_inventories` persists explicit sorted observation-record membership.
+It reopens every selected metadata/receipt/payload dependency and validates the
+combined versions through existing catalog identity/rank/availability rules.
+Frozen results retain record and receipt provenance and reconstruct a fresh
+historical `VersionCatalog`. The canonical manifest is published last with existing
+archive failure limits. It supplies no discovery, provider authenticity, coverage,
+decision/query scope or evaluable dataset snapshot. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
 
 `data.listings` adds an in-memory source-specific historical listing catalog.
 Complete replacement histories bind stable security IDs to effective-dated

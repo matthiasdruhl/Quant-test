@@ -107,7 +107,7 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. `data.observation_records` adds individual receipt-linked metadata assertions; catalog inventories remain unimplemented. Quarantine processing workflows, source-order proof, provider ingestion and coverage/completeness remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. `data.observation_records` adds individual receipt-linked metadata assertions; `data.catalog_inventories` retains explicit collections validated against the existing selector rules. Quarantine processing workflows, source-order proof, provider ingestion and coverage/completeness remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a metadata inventory alone is not an evaluable dataset.
 
 ### Local raw payload archive
 
@@ -138,9 +138,10 @@ retry verifies the complete existing object but does not clear stale staging fil
 
 The caller controls the trusted root, permissions and capacity, and must exclude
 hostile/concurrent mutation except cooperating no-replace publishers. This supports
-local POSIX filesystem semantics only. No `fsync`, crash durability, recovery,
-garbage collection, source/tenant isolation, validated metadata catalogs or
-dataset manifests are provided. Raw receipt persistence is the separate extension below. Read-only file permissions are not tamperproofing.
+local POSIX filesystem semantics only. The payload API provides no `fsync`, crash
+durability, recovery, garbage collection, source/tenant isolation or dataset
+manifest. Separate receipt, metadata and inventory extensions follow below.
+Read-only file permissions are not tamperproofing.
 See [ADR 0009](decisions/0009-local-raw-payload-archive.md) for the storage rationale,
 failure semantics and acceptance limits.
 
@@ -183,7 +184,8 @@ linking can raise with a complete receipt already visible; retry verifies existi
 content. No crash durability or multi-object crash transaction is promised. Receipt
 retention authenticates neither evidence nor source/license claims, does not grant
 historical catalog eligibility, and does not record completed processing. Provider
-ingestion, quarantine queues/reprocessing, validated metadata catalogs, coverage reports and reproducible dataset snapshots remain unimplemented. See
+ingestion, quarantine queues/reprocessing, provider-backed catalog acceptance,
+coverage reports and reproducible dataset snapshots remain unimplemented. See
 [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 ### Explicit raw receipt sets and quality counts
@@ -271,10 +273,56 @@ processing completion. Existing `put_version/get_version` still address payloads
 errors under `RawArchiveError`. Referenced receipt/payload/filesystem failures
 propagate unchanged. Put retains existing base publication error types.
 
-The caller retains record digests; no index, discovery, catalog inventory or
-dataset snapshot is provided. ADR 0009's trusted POSIX, no-replace and pre/post-link
+The caller retains record digests; the individual-record API provides no index,
+discovery or dataset snapshot. Explicit catalog inventories are the separate
+extension below. ADR 0009's trusted POSIX, no-replace and pre/post-link
 failure/retry limits apply, including no crash durability or cleanup recovery.
 See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
+### Explicit version-catalog inventories
+
+`data.catalog_inventories.VersionCatalogManifest(observation_record_sha256s)`
+accepts built-in tuples/lists and snapshots distinct lowercase record digests into
+sorted immutable order. All entries and duplicates validate before dependency
+reads. `build_version_catalog_inventory(archive, observation_record_sha256s)`
+requires a `LocalRawArchive` even for empty membership, reopens every selected
+record through `get_observation_record`, and returns a frozen
+`VersionCatalogInventory(manifest, records)`. Records must be an immutable tuple
+in manifest digest order and reproduce every manifest digest exactly.
+
+All selected versions jointly satisfy `VersionCatalog` rules: duplicate version
+IDs/ranks within one key and revision availability contradicting rank reject.
+Identical payloads/receipts never merge distinct metadata assertions. Independent
+keys may reuse IDs/ranks. `inventory.to_catalog()` reconstructs a fresh selector
+using existing inclusive historical release cutoffs and rank tie-breaking;
+backfill ingestion does not shift those cutoffs. Original record/receipt provenance
+remains on the inventory. Neither construction nor selection authenticates it.
+
+`encode_version_catalog_inventory` produces schema-1 canonical ASCII JSON containing
+only the manifest, schema and `observation-version-catalog-v1` policy ID. Record
+bodies remain dependencies. The encoder checks no archive.
+`decode_version_catalog_inventory(payload, archive)` rejects unsupported types,
+schemas/policies, duplicate/unknown/missing fields, unsorted/duplicate membership
+and noncanonical bytes before dependency reads where possible. It then reloads
+every dependency, revalidates catalog rules and requires exact canonical bytes.
+The literal fixture is `tests/fixtures/version-catalog-inventory-v1.json`.
+
+`LocalRawArchive.put_version_catalog_inventory(digests) -> str` verifies all
+dependencies before publishing the manifest last and creates no observation,
+receipt or payload. `get_version_catalog_inventory(digest)` verifies the inventory
+and its complete selected dependency graph. Standalone malformed/inconsistent
+metadata raises `VersionCatalogInventoryFormatError`, a `ValueError`; inventory
+loads distinguish `VersionCatalogInventoryMissingError` and
+`VersionCatalogInventoryCorruptError` under `RawArchiveError`. Dependency errors
+propagate unchanged; no partial result, fallback, removal or repair is returned.
+Existing trusted-POSIX and pre/post-publication failure/retry limits apply.
+
+Callers retain inventory digests; there is no global index/discovery. An explicit
+empty inventory includes no unmentioned objects and proves no source absence or
+coverage. The manifest carries no decision/effective query scope, code/config/
+environment pins, transform lineage, processing evidence or completeness report.
+It is not an evaluable dataset snapshot. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.

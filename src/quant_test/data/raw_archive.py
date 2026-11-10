@@ -15,6 +15,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from re import fullmatch
 
+from quant_test.data.catalog_inventories import (
+    VersionCatalogInventory,
+    VersionCatalogInventoryFormatError,
+    build_version_catalog_inventory,
+    decode_version_catalog_inventory,
+    encode_version_catalog_inventory,
+)
 from quant_test.data.observation_records import (
     ObservationRecordFormatError,
     ReceiptLinkedVersion,
@@ -78,6 +85,14 @@ class ObservationRecordCorruptError(RawArchiveError):
     """Metadata checksum, schema, policy or receipt linkage is invalid."""
 
 
+class VersionCatalogInventoryMissingError(RawArchiveError):
+    """The explicitly requested version-catalog inventory object does not exist."""
+
+
+class VersionCatalogInventoryCorruptError(RawArchiveError):
+    """Inventory checksum, schema, policy or catalog consistency is invalid."""
+
+
 class ArchiveIOError(RawArchiveError):
     """Filesystem failure, possibly after publication of a complete object.
 
@@ -100,7 +115,8 @@ class LocalRawArchive:
     """A flat archive keyed only by exact lowercase SHA-256 digests.
 
     Raw admission receipts additionally bind payload provenance and syntactic
-    admission. No version index or processing status is persisted. Select the
+    admission. Explicit metadata inventories do not add a mutable version index
+    or processing status. Select the
     historical version first, then call get_version; a missing/corrupt selected
     payload raises and must never trigger fallback.
     """
@@ -317,4 +333,36 @@ class LocalRawArchive:
         except ObservationRecordFormatError as error:
             raise ObservationRecordCorruptError(
                 f"observation record format failed: {observation_record_sha256}"
+            ) from error
+
+    def put_version_catalog_inventory(
+        self, observation_record_sha256s: tuple[str, ...] | list[str]
+    ) -> str:
+        """Verify all selected dependencies and catalog rules, then publish manifest last."""
+        inventory = build_version_catalog_inventory(self, observation_record_sha256s)
+        encoded = encode_version_catalog_inventory(inventory)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_version_catalog_inventory(
+        self, version_catalog_inventory_sha256: str
+    ) -> VersionCatalogInventory:
+        """Verify one explicit inventory and every dependency without partial results."""
+        _require_digest(version_catalog_inventory_sha256)
+        try:
+            encoded = self.get(version_catalog_inventory_sha256)
+        except PayloadMissingError as error:
+            raise VersionCatalogInventoryMissingError(
+                f"version catalog inventory missing: {version_catalog_inventory_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise VersionCatalogInventoryCorruptError(
+                f"version catalog inventory checksum failed: {version_catalog_inventory_sha256}"
+            ) from error
+        try:
+            return decode_version_catalog_inventory(encoded, self)
+        except VersionCatalogInventoryFormatError as error:
+            raise VersionCatalogInventoryCorruptError(
+                f"version catalog inventory format failed: {version_catalog_inventory_sha256}"
             ) from error
