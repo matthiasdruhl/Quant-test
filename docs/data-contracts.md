@@ -374,6 +374,59 @@ Callers retain listing digests. No listing inventory, membership serialization,
 coverage report, provider acceptance or evaluable dataset snapshot is added. See
 [ADR 0014](decisions/0014-persisted-listing-history-records.md).
 
+### Persisted membership-history assertions
+
+`data.membership_records.MembershipHistoryRecord(history, observation_record)`
+requires an explicit `MembershipHistory` and `ReceiptLinkedVersion`. Supplied
+version assertions normalize through the public ADR 0012 boundary and must match
+the referenced metadata's full canonical bytes, including rank, key, provenance
+and all timestamps. The returned record retains the normalized history and exact
+metadata/receipt provenance; encoding cannot silently discard a different version.
+
+`universe_id` remains exact and nonblank. The existing `membership_observation_id`
+prefix is followed by the entire suffix, including colons and leading/trailing
+whitespace. There is no splitting, stripping, case normalization or ticker-derived
+identity. Existing constructors revalidate ordered UTC half-open intervals,
+non-overlap and complete replacement for one security/source/universe. Empty
+replacements retain negative provenance for that key without changing unmentioned
+securities. Membership intervals have no listing end-reason field or taxonomy.
+
+The interval constructor already normalized original zones to UTC. Persistence
+requires standard UTC datetime endpoints, normalizes `fold=0` and stores six
+fractional digits with `Z`; it does not recover or authenticate original zones.
+Tuple order stays in bytes. Existing in-memory interfaces remain unchanged.
+
+`build_membership_history_record(archive, history, observation_record_sha256)`
+verifies the exact existing metadata/accepted-receipt/payload chain before full
+version correspondence checks. `encode_membership_history_record` writes schema-1
+canonical ASCII JSON with `receipt-linked-membership-history-v1`, exact universe
+ID, metadata digest and ordered `effective_from`/nullable `effective_until` pairs.
+Direct construction/encoding proves neither dependency existence nor source truth.
+`decode_membership_history_record(payload, archive)` rejects unsupported schemas/
+policies/types, unknown/missing fields, duplicate keys, noncanonical UTC strings
+and bytes, then verifies dependencies and reconstructs the full universe-key
+contract. The literal reference chain is `tests/fixtures/membership-receipt-v1.json`,
+`membership-observation-record-v1.json` and `membership-history-record-v1.json`.
+
+`LocalRawArchive.put_membership_history_record(history, observation_record_sha256)`
+publishes one membership assertion last and returns its digest. It creates no
+metadata, receipt or payload. `get_membership_history_record(digest)` verifies the
+object and all dependencies. `MembershipHistoryRecordFormatError` is the
+standalone codec `ValueError`; archive loads distinguish
+`MembershipHistoryRecordMissingError` and `MembershipHistoryRecordCorruptError`
+under `RawArchiveError`. Dependency errors propagate unchanged with no partial
+result, fallback or repair. Existing trusted-POSIX, no-replace and pre/post-link
+failure/retry limits apply without crash durability or recovery.
+
+Valid changed intervals/reference or a jointly changed universe and matching
+reference are new assertions; hashes do not authenticate parsing, source scope or
+rights. Reopened histories compose with existing universe/listing catalogs using
+independent release cutoffs and stable IDs, preserving delisted/unresolved members
+and selected negative mapping provenance. There is no separate inventory,
+consumer replay artifact, provider acceptance, coverage report or evaluable
+dataset snapshot in this slice. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.
 

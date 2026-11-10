@@ -70,8 +70,15 @@ Individual listing-history records now retain explicit ordered interval assertio
 under matching pinned observation metadata and reverify the full receipt/payload
 chain on reopen. Existing replacement and historical listing query semantics
 remain intact, without authenticating source parsing or complete source scope.
-Listing catalog inventories and membership persistence remain separate work; see
+Consumer-facing metadata query/replay artifacts remain separate work; see
 [ADR 0014](decisions/0014-persisted-listing-history-records.md).
+Membership-history records now retain exact universe IDs, ordered interval
+assertions and full matching observation metadata, with the same verified
+dependency graph. Reopened membership/listing histories preserve independent
+source cutoffs, negative replacement/mapping provenance and unresolved delisted
+members without ticker rebinding. They authenticate neither source parsing nor
+universe coverage. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.

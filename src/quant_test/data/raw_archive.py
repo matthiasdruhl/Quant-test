@@ -30,6 +30,13 @@ from quant_test.data.listing_records import (
     encode_listing_history_record,
 )
 from quant_test.data.listings import ListingHistory
+from quant_test.data.membership_records import (
+    MembershipHistoryRecord,
+    MembershipHistoryRecordFormatError,
+    build_membership_history_record,
+    decode_membership_history_record,
+    encode_membership_history_record,
+)
 from quant_test.data.observation_records import (
     ObservationRecordFormatError,
     ReceiptLinkedVersion,
@@ -50,6 +57,7 @@ from quant_test.data.receipts import (
     decode_receipt,
     encode_receipt,
 )
+from quant_test.data.universes import MembershipHistory
 from quant_test.data.versions import ObservationVersion
 
 
@@ -107,6 +115,14 @@ class ListingHistoryRecordMissingError(RawArchiveError):
 
 class ListingHistoryRecordCorruptError(RawArchiveError):
     """Listing assertion checksum, schema, policy or consistency is invalid."""
+
+
+class MembershipHistoryRecordMissingError(RawArchiveError):
+    """The explicitly requested membership-history assertion does not exist."""
+
+
+class MembershipHistoryRecordCorruptError(RawArchiveError):
+    """Membership assertion checksum, schema, policy or consistency is invalid."""
 
 
 class ArchiveIOError(RawArchiveError):
@@ -413,4 +429,36 @@ class LocalRawArchive:
         except ListingHistoryRecordFormatError as error:
             raise ListingHistoryRecordCorruptError(
                 f"listing history record format failed: {listing_history_record_sha256}"
+            ) from error
+
+    def put_membership_history_record(
+        self, history: MembershipHistory, observation_record_sha256: str
+    ) -> str:
+        """Verify metadata and publish one exact universe membership assertion last."""
+        record = build_membership_history_record(self, history, observation_record_sha256)
+        encoded = encode_membership_history_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_membership_history_record(
+        self, membership_history_record_sha256: str
+    ) -> MembershipHistoryRecord:
+        """Verify exact membership and every selected metadata/receipt/payload dependency."""
+        _require_digest(membership_history_record_sha256)
+        try:
+            encoded = self.get(membership_history_record_sha256)
+        except PayloadMissingError as error:
+            raise MembershipHistoryRecordMissingError(
+                f"membership history record missing: {membership_history_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise MembershipHistoryRecordCorruptError(
+                f"membership history record checksum failed: {membership_history_record_sha256}"
+            ) from error
+        try:
+            return decode_membership_history_record(encoded, self)
+        except MembershipHistoryRecordFormatError as error:
+            raise MembershipHistoryRecordCorruptError(
+                f"membership history record format failed: {membership_history_record_sha256}"
             ) from error

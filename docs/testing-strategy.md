@@ -133,6 +133,19 @@ Injected creation/write/close/verify/link and post-link cleanup/directory-close
 failures retain archive publication/retry semantics. See
 [ADR 0014](decisions/0014-persisted-listing-history-records.md).
 
+Membership-history record references pin fresh literal receipt/metadata/membership
+bytes and hashes with an exact whitespace/colon universe suffix. Reopened temporal
+cases cover entry/exit, late corrections, empty replacements with negative
+provenance and security/source/universe isolation. Cross-module references reopen
+listing records and apply independent release cutoffs, preserving unresolved
+delisted members despite ticker reuse and later mapping corrections. Tests cover
+every supplied-version/universe mismatch, valid new assertions, ordered intervals,
+offset/fold/gap/subclass boundaries, forbidden listing fields, strict schema/types/
+canonical bytes, dependency corruption and pre/post-publication faults. These
+mechanical references prove neither source parsing nor real-world universe
+completeness. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
 history scope. The local archive persists exact payloads, raw receipt assertions/
 outcomes, individually linked version assertions and explicit metadata inventories;

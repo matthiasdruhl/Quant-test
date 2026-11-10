@@ -117,6 +117,16 @@ delisted members, and reports unresolved mappings explicitly. It establishes no
 provider coverage or universe completeness; see
 [ADR 0008](decisions/0008-point-in-time-universe-membership.md).
 
+`data.membership_records` retains one explicit per-security/source/universe history
+against matching observation metadata. Full supplied-version correspondence uses
+the public metadata normalization boundary; ordered intervals and the complete
+universe-ID suffix remain exact. Reopen verifies metadata, accepted receipt and
+payload before reconstructing the current membership contract. Reopened histories
+join independently selected listing histories without dropping delisted or
+unresolved members. This adds no source authentication, universe completeness or
+consumer replay artifact. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
 Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
 
 ## Execution boundary

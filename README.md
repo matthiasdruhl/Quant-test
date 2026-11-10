@@ -152,8 +152,15 @@ existing matching observation record. Reopen verifies that metadata/receipt/
 payload chain and reconstructs the current complete-replacement listing contract,
 including empty replacements and negative lookup provenance. The link does not
 prove an adapter parsed intervals correctly or establish source completeness.
-Membership persistence and listing catalog inventories remain separate work; see
+Consumer-facing query/replay artifacts remain separate work; see
 [ADR 0014](docs/decisions/0014-persisted-listing-history-records.md).
+
+Membership-history records persist an exact universe ID and ordered intervals
+under matching pinned metadata. Reopen retains complete replacement and negative
+provenance semantics and composes with reopened listing histories through the
+existing stable-ID join. The entire universe suffix, including colons and spaces,
+is preserved. This proves neither source parsing nor real-world universe coverage;
+see [ADR 0015](docs/decisions/0015-persisted-membership-history-records.md).
 
 The remaining contracts are documented in [data contracts](docs/data-contracts.md), [strategy targets](docs/strategy-contract.md), [research and holdout protocol](docs/research-protocol.md), [testing strategy](docs/testing-strategy.md), and [risk policy](docs/risk-policy.md). These documents distinguish implemented temporal validation and raw storage from future enforcement.
 
