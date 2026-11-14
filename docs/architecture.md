@@ -5,6 +5,9 @@ described below. The research, backtest, strategies, intelligence, portfolio, an
 execution packages contain only docstrings reserving future module boundaries.
 Review architectural changes through ADRs. M1 is the active milestone; its
 acceptance gates remain open in the [roadmap](roadmap.md#m1--point-in-time-market-data).
+[ADR 0012](decisions/0012-open-source-first-dependency-strategy.md) establishes
+an open-source-first policy for **future** implementations; it does not approve
+new dependencies, invalidate M0/M1 evidence, or change any runtime behavior.
 
 ## Mission
 Long-lived, research-first U.S. equities platform for swing strategies and eventually paper/live execution. The platform is a **modular Python monolith** with narrow contracts, not a distributed system.
@@ -13,17 +16,40 @@ Long-lived, research-first U.S. equities platform for swing strategies and event
 - `core`: aware timestamps, identifiers, immutable domain contracts.
 - `data`: ingestion, security master, corporate actions, point-in-time sources, lineage.
 - `research`: feature computation, experiment metadata, validation, immutable results.
-- `backtest`: deterministic event scheduling, fill simulation, accounting, costs.
+- `backtest`: a narrow adapter to the **selected and independently validated** event scheduling, fill simulation, accounting, and cost engine (candidate evaluation pending).
 - `strategies`: pure strategy functions from available observations to desired exposures.
 - `intelligence`: macro, company events, SEC filings, later licensed alternative data.
 - `portfolio`: account constraints, net exposures, candidate allocations, deterministic risk vetoes.
 - `execution`: future paper/live adapters, order idempotency, reconciliation, safety stop.
 
+## Build-versus-reuse and integration boundary
+
+We prefer maintained external libraries and frameworks for backtesting, financial data
+connectors, analytical storage, statistics/ML, and experiment tracking. A custom engine
+is **not** the default plan. Evaluate Qlib first for end-to-end research, and LEAN as
+a competing event-driven simulation candidate; select one primary engine only after
+reference ledger, time-eligibility, survivorship, license, environment, and integration
+checks. Do not combine complete research/simulation frameworks by default.
+
+The existing `core` and `data` temporal/revision/listing/universe functionality
+remains the project's independent correctness boundary while external integration
+is assessed. Preserve existing raw archive/receipt implementations until a replacement
+passes parity tests and a migration decision is documented. Domain adapters may map
+eligible observations into a chosen engine and normalize results; they must not silently
+weaken information-availability, strategy-target, holdout, or risk rules.
+
+Evaluate DuckDB/Parquet for curated datasets, existing provider integrations such
+as OpenBB or licensed APIs, and existing research/ML/experiment tooling before
+custom development. RD-Agent is a future *candidate* for bounded research assistance
+**after** a deterministic baseline exists. New runtime dependencies remain absent
+pending evaluation and review. See the [decision record](decisions/0012-open-source-first-dependency-strategy.md)
+and [candidate scorecard/experiments](dependency-evaluation.md).
+
 ## Dependency direction
 - `core` imports no platform modules.
 - `data` and `intelligence` depend on `core`, not on trading execution.
 - `strategies` depend on stable domain contracts, not broker SDKs, databases, or web calls.
-- `research` and `backtest` compose data, strategies, and domain contracts.
+- `research` and `backtest` integrate selected external frameworks via narrow adapters while preserving data, strategy, and domain contracts.
 - `portfolio` consumes targets and known account state; never trusts a model's self-reported limits.
 - `execution` accepts only pre-vetted orders. Research agents have no order permissions.
 - Avoid cycles. An adapter may translate external records into core contracts; core never imports adapters.
