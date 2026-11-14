@@ -62,13 +62,28 @@ at that revision and does not supply the missing provider integration or complet
 M1 acceptance evidence. The [documentation audit](documentation-audit.md) records
 the separate local checks and review limitations.
 
-## M2 — Backtester and accounting
+## Architecture checkpoint — dependency evaluation before M2/M3/M4 implementation
+
+This checkpoint is a **planning gate, not a completed milestone**. M1 remains active;
+its five acceptance gates above remain open. Per [ADR 0012](decisions/0012-open-source-first-dependency-strategy.md),
+compare proven external tools before creating custom simulation, research, or AI-agent
+subsystems. See the [evaluation plan](dependency-evaluation.md) for the test matrix.
+
+- [ ] Inventory the current temporal/catalog/archive/receipt code and M1 gaps against external data/storage candidates; record preserve/wrap/replace/defer with migration risks.
+- [ ] Record actual software licenses, provider data rights/cost/coverage, upstream maintenance/security, and Python 3.11.17/macOS/Linux or isolation compatibility.
+- [ ] Execute bounded Qlib and LEAN trials using the same data, baseline strategy, fill/cost assumptions, future-data traps, corporate actions, and independent reference ledger fixtures.
+- [ ] Select one primary simulation engine (or document failures and an exceptional custom-build justification) through an approved ADR; preserve safeguards and pin dependencies only after approval.
+- [ ] Produce a reproducible data-to-backtest-to-report vertical slice with an independently reviewed evidence record. No AI research agent or broker pathway is needed for this gate.
+
+## M2 — Adopt/integrate and validate backtester and accounting
+- [ ] Selected external primary engine integration is documented, pinned, and tested against the existing data/strategy contracts (or a separately justified custom scope).
 - [ ] Reference ledger scenarios pass.
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
 - [ ] Future-data trap tests fail correctly.
 - [ ] Runs reproducible by configuration and dataset revision.
 
-## M3 — Strategy and statistical evaluation
+## M3 — Reuse-first strategy and statistical evaluation
+- [ ] Prefer selected engine's research/evaluation capabilities and established statistics/ML/experiment libraries; document necessary custom adapters and avoid overlapping registries.
 - [ ] Simple momentum/reversion baselines, no invented P&L.
 - [ ] Benchmark, chronological validation, holdout controls.
 - [ ] Target units, replacement/expiry semantics, allocation, and sizing reference fixtures pass.
@@ -77,7 +92,8 @@ the separate local checks and review limitations.
 - [ ] Store all failed and successful experiments.
 - [ ] Quantify uncertainty and trading cost sensitivity.
 
-## M4 — AI research assistance
+## M4 — Evaluate reusable AI research assistance
+- [ ] Evaluate RD-Agent or other maintained frameworks against a working deterministic baseline and holdout controls before building a custom agent runtime.
 - [ ] Bounded proposal/implementation/reviewer workflow.
 - [ ] No credential, deployment, or trading permissions.
 - [ ] Research outputs have reproducible experiment IDs.
