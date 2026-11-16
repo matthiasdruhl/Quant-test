@@ -7,6 +7,9 @@
 persists an explicit receipt-set manifest and descriptive quality report. The
 individual-receipt scope below remains unchanged; neither extension implements
 an evaluable dataset snapshot or a quarantine processing workflow.
+[ADR 0012](0012-receipt-linked-observation-records.md) separately retains supplied
+version assertions linked to accepted receipts; receipt acceptance alone still
+does not create a version or authenticate its provenance.
 
 ## Context
 

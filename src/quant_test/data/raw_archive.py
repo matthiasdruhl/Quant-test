@@ -15,6 +15,35 @@ from contextlib import contextmanager
 from pathlib import Path
 from re import fullmatch
 
+from quant_test.data.catalog_inventories import (
+    VersionCatalogInventory,
+    VersionCatalogInventoryFormatError,
+    build_version_catalog_inventory,
+    decode_version_catalog_inventory,
+    encode_version_catalog_inventory,
+)
+from quant_test.data.listing_records import (
+    ListingHistoryRecord,
+    ListingHistoryRecordFormatError,
+    build_listing_history_record,
+    decode_listing_history_record,
+    encode_listing_history_record,
+)
+from quant_test.data.listings import ListingHistory
+from quant_test.data.membership_records import (
+    MembershipHistoryRecord,
+    MembershipHistoryRecordFormatError,
+    build_membership_history_record,
+    decode_membership_history_record,
+    encode_membership_history_record,
+)
+from quant_test.data.observation_records import (
+    ObservationRecordFormatError,
+    ReceiptLinkedVersion,
+    build_observation_record,
+    decode_observation_record,
+    encode_observation_record,
+)
 from quant_test.data.receipt_sets import (
     RawReceiptSet,
     ReceiptSetFormatError,
@@ -28,6 +57,15 @@ from quant_test.data.receipts import (
     decode_receipt,
     encode_receipt,
 )
+from quant_test.data.universe_listing_replays import (
+    UniverseListingReplay,
+    UniverseListingReplayFormatError,
+    UniverseListingReplayManifest,
+    build_universe_listing_replay,
+    decode_universe_listing_replay,
+    encode_universe_listing_replay,
+)
+from quant_test.data.universes import MembershipHistory
 from quant_test.data.versions import ObservationVersion
 
 
@@ -63,6 +101,46 @@ class ReceiptSetCorruptError(RawArchiveError):
     """Receipt-set checksum, schema, policy or recomputed report is invalid."""
 
 
+class ObservationRecordMissingError(RawArchiveError):
+    """The explicitly requested receipt-linked metadata object does not exist."""
+
+
+class ObservationRecordCorruptError(RawArchiveError):
+    """Metadata checksum, schema, policy or receipt linkage is invalid."""
+
+
+class VersionCatalogInventoryMissingError(RawArchiveError):
+    """The explicitly requested version-catalog inventory object does not exist."""
+
+
+class VersionCatalogInventoryCorruptError(RawArchiveError):
+    """Inventory checksum, schema, policy or catalog consistency is invalid."""
+
+
+class ListingHistoryRecordMissingError(RawArchiveError):
+    """The explicitly requested listing-history assertion object does not exist."""
+
+
+class ListingHistoryRecordCorruptError(RawArchiveError):
+    """Listing assertion checksum, schema, policy or consistency is invalid."""
+
+
+class MembershipHistoryRecordMissingError(RawArchiveError):
+    """The explicitly requested membership-history assertion does not exist."""
+
+
+class MembershipHistoryRecordCorruptError(RawArchiveError):
+    """Membership assertion checksum, schema, policy or consistency is invalid."""
+
+
+class UniverseListingReplayMissingError(RawArchiveError):
+    """The explicitly requested universe-listing replay does not exist."""
+
+
+class UniverseListingReplayCorruptError(RawArchiveError):
+    """Replay checksum, schema, policy or recomputed report is invalid."""
+
+
 class ArchiveIOError(RawArchiveError):
     """Filesystem failure, possibly after publication of a complete object.
 
@@ -85,7 +163,8 @@ class LocalRawArchive:
     """A flat archive keyed only by exact lowercase SHA-256 digests.
 
     Raw admission receipts additionally bind payload provenance and syntactic
-    admission. No version index or processing status is persisted. Select the
+    admission. Explicit metadata inventories do not add a mutable version index
+    or processing status. Select the
     historical version first, then call get_version; a missing/corrupt selected
     payload raises and must never trigger fallback.
     """
@@ -270,4 +349,162 @@ class LocalRawArchive:
         except ReceiptSetFormatError as error:
             raise ReceiptSetCorruptError(
                 f"raw receipt-set format failed: {receipt_set_sha256}"
+            ) from error
+
+    def put_observation_record(self, version: ObservationVersion, receipt_sha256: str) -> str:
+        """Verify existing receipt/payload and publish explicit metadata assertions last.
+
+        No receipt or payload is created and no accepted receipt is promoted.
+        Existing no-replace publication and post-link cleanup limits apply.
+        """
+        record = build_observation_record(self, version, receipt_sha256)
+        encoded = encode_observation_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_observation_record(self, observation_record_sha256: str) -> ReceiptLinkedVersion:
+        """Verify metadata and every dependency; never return a substitute version."""
+        _require_digest(observation_record_sha256)
+        try:
+            encoded = self.get(observation_record_sha256)
+        except PayloadMissingError as error:
+            raise ObservationRecordMissingError(
+                f"observation record missing: {observation_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise ObservationRecordCorruptError(
+                f"observation record checksum failed: {observation_record_sha256}"
+            ) from error
+        try:
+            return decode_observation_record(encoded, self)
+        except ObservationRecordFormatError as error:
+            raise ObservationRecordCorruptError(
+                f"observation record format failed: {observation_record_sha256}"
+            ) from error
+
+    def put_version_catalog_inventory(
+        self, observation_record_sha256s: tuple[str, ...] | list[str]
+    ) -> str:
+        """Verify all selected dependencies and catalog rules, then publish manifest last."""
+        inventory = build_version_catalog_inventory(self, observation_record_sha256s)
+        encoded = encode_version_catalog_inventory(inventory)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_version_catalog_inventory(
+        self, version_catalog_inventory_sha256: str
+    ) -> VersionCatalogInventory:
+        """Verify one explicit inventory and every dependency without partial results."""
+        _require_digest(version_catalog_inventory_sha256)
+        try:
+            encoded = self.get(version_catalog_inventory_sha256)
+        except PayloadMissingError as error:
+            raise VersionCatalogInventoryMissingError(
+                f"version catalog inventory missing: {version_catalog_inventory_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise VersionCatalogInventoryCorruptError(
+                f"version catalog inventory checksum failed: {version_catalog_inventory_sha256}"
+            ) from error
+        try:
+            return decode_version_catalog_inventory(encoded, self)
+        except VersionCatalogInventoryFormatError as error:
+            raise VersionCatalogInventoryCorruptError(
+                f"version catalog inventory format failed: {version_catalog_inventory_sha256}"
+            ) from error
+
+    def put_listing_history_record(
+        self, history: ListingHistory, observation_record_sha256: str
+    ) -> str:
+        """Verify pinned metadata and publish one explicit listing assertion last."""
+        record = build_listing_history_record(self, history, observation_record_sha256)
+        encoded = encode_listing_history_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_listing_history_record(
+        self, listing_history_record_sha256: str
+    ) -> ListingHistoryRecord:
+        """Verify listing assertions and all metadata/receipt/payload dependencies."""
+        _require_digest(listing_history_record_sha256)
+        try:
+            encoded = self.get(listing_history_record_sha256)
+        except PayloadMissingError as error:
+            raise ListingHistoryRecordMissingError(
+                f"listing history record missing: {listing_history_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise ListingHistoryRecordCorruptError(
+                f"listing history record checksum failed: {listing_history_record_sha256}"
+            ) from error
+        try:
+            return decode_listing_history_record(encoded, self)
+        except ListingHistoryRecordFormatError as error:
+            raise ListingHistoryRecordCorruptError(
+                f"listing history record format failed: {listing_history_record_sha256}"
+            ) from error
+
+    def put_universe_listing_replay(self, manifest: UniverseListingReplayManifest) -> str:
+        """Verify the complete explicit graph, then publish one computed replay last."""
+        replay = build_universe_listing_replay(self, manifest)
+        encoded = encode_universe_listing_replay(replay)
+        digest = replay.universe_listing_replay_sha256
+        self.put(digest, encoded)
+        return digest
+
+    def get_universe_listing_replay(
+        self, universe_listing_replay_sha256: str
+    ) -> UniverseListingReplay:
+        """Reopen all histories and recompute the exact pinned historical query."""
+        _require_digest(universe_listing_replay_sha256)
+        try:
+            encoded = self.get(universe_listing_replay_sha256)
+        except PayloadMissingError as error:
+            raise UniverseListingReplayMissingError(
+                f"universe listing replay missing: {universe_listing_replay_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise UniverseListingReplayCorruptError(
+                f"universe listing replay checksum failed: {universe_listing_replay_sha256}"
+            ) from error
+        try:
+            return decode_universe_listing_replay(encoded, self)
+        except UniverseListingReplayFormatError as error:
+            raise UniverseListingReplayCorruptError(
+                f"universe listing replay format failed: {universe_listing_replay_sha256}"
+            ) from error
+
+    def put_membership_history_record(
+        self, history: MembershipHistory, observation_record_sha256: str
+    ) -> str:
+        """Verify metadata and publish one exact universe membership assertion last."""
+        record = build_membership_history_record(self, history, observation_record_sha256)
+        encoded = encode_membership_history_record(record)
+        digest = hashlib.sha256(encoded).hexdigest()
+        self.put(digest, encoded)
+        return digest
+
+    def get_membership_history_record(
+        self, membership_history_record_sha256: str
+    ) -> MembershipHistoryRecord:
+        """Verify exact membership and every selected metadata/receipt/payload dependency."""
+        _require_digest(membership_history_record_sha256)
+        try:
+            encoded = self.get(membership_history_record_sha256)
+        except PayloadMissingError as error:
+            raise MembershipHistoryRecordMissingError(
+                f"membership history record missing: {membership_history_record_sha256}"
+            ) from error
+        except PayloadCorruptError as error:
+            raise MembershipHistoryRecordCorruptError(
+                f"membership history record checksum failed: {membership_history_record_sha256}"
+            ) from error
+        try:
+            return decode_membership_history_record(encoded, self)
+        except MembershipHistoryRecordFormatError as error:
+            raise MembershipHistoryRecordCorruptError(
+                f"membership history record format failed: {membership_history_record_sha256}"
             ) from error

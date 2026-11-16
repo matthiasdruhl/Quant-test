@@ -1,7 +1,7 @@
 # Dependency evaluation and reuse-first delivery plan
 
 **Status:** Proposed evaluation backlog, not an adopted stack. Updated 2026-11-13.
-**Authority:** [ADR 0012](decisions/0012-open-source-first-dependency-strategy.md), [architecture](architecture.md), [roadmap](roadmap.md), [invariants](invariants.md), [data contracts](data-contracts.md), [research protocol](research-protocol.md).
+**Authority:** [ADR 0020](decisions/0020-open-source-first-dependency-strategy.md), [architecture](architecture.md), [roadmap](roadmap.md), [invariants](invariants.md), [data contracts](data-contracts.md), [research protocol](research-protocol.md).
 **Goal:** Reach one reproducible, independently checked, end-to-end U.S. equities swing-research run with minimal custom infrastructure. No live execution.
 
 ## Decision matrix

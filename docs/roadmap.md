@@ -17,6 +17,14 @@ The [M0 evidence record](m0-evidence.md) preserves the historical CI hash-verifi
 **Active milestone.** Implemented slices below are partial progress; all five
 acceptance gates remain open.
 
+The [proposed Databento Security Master source contract](sources/databento-security-master.md)
+records a first listing-history candidate, its documentation evidence and the
+rights, availability, identity and completeness questions blocking validated
+ingestion. This is qualification work, not a selected provider or closed gate.
+On 2026-11-10 the owner reported no existing provider/dataset entitlement for
+research and archival use; source selection, rights and qualification evidence
+remain external requirements for provider integration.
+
 - [ ] Security master with delisting/history.
 - [ ] Licensed OHLCV, corporate actions, data provenance and replay fixtures.
 - [ ] Source availability is tested against decision timestamps.
@@ -48,6 +56,37 @@ manifest with recomputed admission/null/precision/status/reason counts; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md). These descriptive
 counts include accepted and quarantined assertions and do not establish source
 coverage, validated observation promotion, revision selection or dataset snapshots.
+Individual receipt-linked observation records now persist explicitly supplied
+metadata assertions and verify their exact accepted raw receipt/payload linkage
+before publication and on reopen. They do not infer a version from admission or
+authenticate source rank/provenance; evaluable snapshots remain unimplemented. See
+[ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+Explicit immutable version-catalog inventories now retain selected observation
+record digests, reverify the complete dependency graph and reconstruct historical
+selection after validating combined identity/rank/availability rules. They carry
+no query cutoff, coverage or source-authenticity guarantee and are not evaluable
+dataset snapshots. See [ADR 0013](decisions/0013-version-catalog-inventories.md).
+Individual listing-history records now retain explicit ordered interval assertions
+under matching pinned observation metadata and reverify the full receipt/payload
+chain on reopen. Existing replacement and historical listing query semantics
+remain intact, without authenticating source parsing or complete source scope.
+See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+Membership-history records now retain exact universe IDs, ordered interval
+assertions and full matching observation metadata, with the same verified
+dependency graph. Reopened membership/listing histories preserve independent
+source cutoffs, negative replacement/mapping provenance and unresolved delisted
+members without ticker rebinding. They authenticate neither source parsing nor
+universe coverage. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+Historical universe-listing replay artifacts now pin both explicit record sets,
+exact query filters and effective/decision times. Reopen validates the complete
+dependency graph and all catalog identities before independently selecting each
+source, then recomputes a canonical report of selected digests/original interval
+indices. Negative context and unresolved stable members remain explicit. These
+artifacts omit code/config/environment pins and do not establish authenticated
+source provenance or evaluable dataset snapshots. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 These primitives do not authenticate evidence or implement provider ingestion,
 source revision/identity proof, coverage/completeness reporting, or dataset snapshots. All M1 gates remain open pending their complete acceptance
 evidence, CI, and independent review.
@@ -62,10 +101,10 @@ at that revision and does not supply the missing provider integration or complet
 M1 acceptance evidence. The [documentation audit](documentation-audit.md) records
 the separate local checks and review limitations.
 
-## Architecture checkpoint — dependency evaluation before M2/M3/M4 implementation
+## Architecture checkpoint — dependency evaluation before expanding M2–M4
 
-This checkpoint is a **planning gate, not a completed milestone**. M1 remains active;
-its five acceptance gates above remain open. Per [ADR 0012](decisions/0012-open-source-first-dependency-strategy.md),
+M1 remains active with all five acceptance gates open. Per
+[ADR 0020](decisions/0020-open-source-first-dependency-strategy.md),
 compare proven external tools before creating custom simulation, research, or AI-agent
 subsystems. See the [evaluation plan](dependency-evaluation.md) for the test matrix.
 
@@ -76,13 +115,45 @@ subsystems. See the [evaluation plan](dependency-evaluation.md) for the test mat
 - [ ] Produce a reproducible data-to-backtest-to-report vertical slice with an independently reviewed evidence record. No AI research agent or broker pathway is needed for this gate.
 
 ## M2 — Adopt/integrate and validate backtester and accounting
+
+The task user approved the exact bounded v1 conventions and five reference
+scenarios at `b216d63d3a63c39f8770f6f3500e7e75127da590`; the
+[approval record](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+is separate from implementation acceptance. `backtest.reference_ledger` now
+replays explicit cash/fill/whole-settlement assertions into immutable balances,
+reserved cash, held/sellable quantities and exact identity provenance. Fresh
+explicit marks derive arithmetic equity under the
+[unchanged five reference scenarios](m2-reference-ledger-v1.md). This adds no fill
+simulator, actual trade/source proof, target conversion, corporate-action policy,
+financing or strategy returns. The [exact-revision implementation evidence](m2-reference-ledger-evidence.md)
+closes only the reference-ledger scenario gate below. M1 remains active; all
+M1/M3 and remaining M2 gates stay open. Financial approval alone closes no gate.
+
+- [x] Reference ledger scenarios pass. [Evidence](m2-reference-ledger-evidence.md#reference-scenario-acceptance).
 - [ ] Selected external primary engine integration is documented, pinned, and tested against the existing data/strategy contracts (or a separately justified custom scope).
-- [ ] Reference ledger scenarios pass.
 - [ ] Costs, partial fills, sessions, splits, and dividends tested.
 - [ ] Future-data trap tests fail correctly.
 - [ ] Runs reproducible by configuration and dataset revision.
 
 ## M3 — Reuse-first strategy and statistical evaluation
+
+The long-only target quantity/lifecycle subset now has immutable Decimal
+proposals, full caller-context assertion checks and globally validated replacement
+histories with half-open expiry and no fallback. This is partial progress under
+[ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md), not a complete
+strategy output, allocator, sizing policy, evaluation runner or authenticated
+snapshot/operational receipt gate. The broader signed design and all M3 acceptance
+gates remain open; M1 remains active.
+
+A development-only [offline toolchain verifier](decisions/0019-offline-toolchain-replay.md)
+now captures actual locked wheels and clean-source/tool observations, then
+reopens them for an unseeded offline installation and installed test consumer.
+This is partial toolchain replay infrastructure, with
+[exact-revision platform evidence](m2-reference-ledger-evidence.md#exact-head-ci-and-offline-replay).
+It is not a complete experiment environment collector, source dataset snapshot
+or durable CI archive. The toolchain slice closes no milestone gate; the separate
+reference-ledger scenario gate has the evidence linked above.
+
 - [ ] Prefer selected engine's research/evaluation capabilities and established statistics/ML/experiment libraries; document necessary custom adapters and avoid overlapping registries.
 - [ ] Simple momentum/reversion baselines, no invented P&L.
 - [ ] Benchmark, chronological validation, holdout controls.

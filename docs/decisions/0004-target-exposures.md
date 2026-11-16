@@ -1,7 +1,15 @@
 # ADR 0004: Strategy target weights and batch lifecycle
 
-- **Status:** Accepted design contract; target/portfolio implementation and accounting approval remain future gates
+- **Status:** Accepted design contract; broader portfolio/conversion conventions remain future gates
 - **Date:** 2026-11-09
+
+**Subsequent boundaries:** [ADR 0018](0018-immutable-target-batch-lifecycle.md)
+implements only long-only quantity/lifecycle assertions.
+[ADR 0017](0017-explicit-reference-ledger.md#recorded-owner-approval) records owner
+approval of the bounded explicit-fill reference model. That approval/ledger does
+not adopt target conversion, portfolio allocation, FX, rounding, lot sizing or
+pending-order policy; those remaining conventions need their own approval and
+independent references. The original accepted target design below is unchanged.
 
 ## Context
 An undefined exposure could mean shares, a currency amount, a trade increment, or a desired weight. Omitted and expired targets can likewise mean conflicting actions. These ambiguities must be resolved before strategy and portfolio implementations are joined.

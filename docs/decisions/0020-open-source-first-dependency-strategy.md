@@ -1,4 +1,4 @@
-# ADR 0012: Open-source-first dependency and build-versus-reuse policy
+# ADR 0020: Open-source-first dependency and build-versus-reuse policy
 
 - **Date:** 2026-11-13
 - **Status:** Accepted as a planning policy; individual dependencies are **not approved or adopted**
@@ -8,7 +8,7 @@
 
 ## Context
 
-Quant-test is a research-first U.S. equities platform. M0 is complete and M1 is partly implemented, but the repository has no trading strategy, backtest engine, brokerage integration, or live execution. The existing roadmap reserved many subsystems for custom implementation before evaluating mature open-source solutions.
+Quant-test is a research-first U.S. equities platform. M0 is complete and M1 is partly implemented. The bounded [explicit-fill reference ledger](0017-explicit-reference-ledger.md) provides independent accounting scenarios for candidate evaluation. Strategy runners, fill simulation, and execution adapters remain planned. The earlier roadmap reserved many subsystems for custom implementation before evaluating mature open-source solutions.
 
 Building simulation, accounting, research workflow, reporting, ingestion connectors, and agent orchestration from scratch would increase maintenance and correctness risk and delay the first complete, validated research experiment. On the other hand, adopting a framework without checking point-in-time availability, survivorship, data provenance, cost/fill semantics, or research holdout controls could give misleading financial results.
 
@@ -55,7 +55,7 @@ A passing smoke test or attractive benchmark is **not** approval of financial co
 
 ## Impact on earlier roadmap
 
-M1 remains active and its gates remain open. Before expanding M1 implementation, inventory existing primitives against candidate providers/storage and stop speculative archive growth. Insert an evidence-based dependency evaluation before M2–M4 implementation. Rewrite M2 as **adopt/integrate and validate simulation**, not **build our own engine**; rewrite M3/M4 as reuse-first experiments and bounded agent evaluation. Do not represent any of those milestones as complete until their original correctness gates pass.
+M1 remains active and its gates remain open. Before expanding M1 implementation, inventory existing primitives against candidate providers and storage. Use the [dependency evaluation](../dependency-evaluation.md) before expanding M2–M4. M2 focuses on adopting, integrating, and validating simulation. M3 and M4 prioritize reusable research tooling and bounded agent evaluation. The existing reference-ledger evidence and the original milestone acceptance requirements carry forward.
 
 ## Sources to check during evaluation
 

@@ -3,13 +3,22 @@
 ## Fast checks
 CI is configured to run `ruff check .`, `ruff format --check .`, `mypy src`, and `pytest` on the exact Python baseline in `.python-version`, on Ubuntu and macOS. It additionally builds/installs a wheel and checks that the data/time modules import; pytest then exercises the installed distribution. Local checks use the same hash-locked installation described in [environment setup](environment.md). A workflow file is not evidence of a successful remote run.
 
+The same workflow runs on pushes to `main` and `codex/**` branches and on pull
+requests, so a pushed implementation branch can receive CI without opening a PR.
+Push runs check out the pushed revision; PR runs use GitHub's synthetic merge
+revision under the current checkout configuration. Record the actual checked-out
+SHA from job logs when reporting evidence; a run associated with a PR head does
+not prove that the literal head was tested. Trigger coverage does not authorize
+merging, deployment or milestone completion.
+
 ## Test layers
 The layers below are the verification plan. Currently, `tests/unit/` contains the
 timestamp suite and `tests/contract/` contains the data reference, cross-module,
 and adversarial cases described below. `tests/integration/` contains only a
 `.gitkeep`. Hypothesis is a locked development dependency, but no property-based
-suite is implemented. End-to-end ingestion, strategy, ledger, and research layers
-await their owning milestones.
+suite is implemented. End-to-end ingestion, strategy, simulator-to-ledger and
+research layers await their owning milestones; the bounded reference ledger has
+standalone contract cases below.
 
 1. **Unit:** deterministic parsers, timestamps, calculations, validation, negative paths.
 2. **Contract:** provider/strategy/portfolio interfaces and hand-calculated accounting fixtures.
@@ -85,14 +94,156 @@ local tests imply no provider coverage, completeness, dataset snapshot, CI resul
 or crash durability; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
+Receipt-linked observation references pin independent literal canonical bytes/hash
+and every shared-field mismatch. They exercise exact text, accepted/quarantined
+receipts, unknown events, equivalent offsets, both DST folds, gaps before UTC
+normalization, unsupported datetime/integer/timezone boundaries, UTC overflow and
+keyed-zone offset/name mismatch. Rehashed nested schema/policy/type/timestamp
+tampering and duplicate/noncanonical JSON reject. Missing/corrupt/nonregular
+metadata and dependencies fail without fallback or repair. Injected creation,
+write, file-close, stage verification and link failures expose no new metadata;
+post-link cleanup/directory-close failure can leave a complete object that retry
+verifies. Reopened versions compose with existing revision cutoffs and operational
+processing gates. Explicit rank assertions remain unauthenticated; these cases
+prove linkage mechanics, not provider truth, source coverage or milestone
+acceptance. See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
+Version-catalog inventory references pin literal canonical manifest bytes/hash,
+explicit empty membership and invalid-archive/collection rejection before reads.
+They exercise input snapshots, digest order/provenance, manifest correspondence,
+duplicate version IDs/ranks across distinct records/receipts, contradictory
+availability, independent key partitions, equal-time rank ties and historical
+backfill boundaries after reopen. Rehashed schema/policy/type/membership tampering,
+unknown/duplicate fields, unsorted arrays and noncanonical bytes reject. Missing/
+corrupt/nonregular manifests and any record/receipt/payload failure prevent a
+complete result; raw receipts/payloads cannot enter as observation records.
+Publication fault cases preserve dependency-first ordering, pre-link failure and
+post-link cleanup/directory-close retry semantics. These inventories make no
+provider coverage, source authentication or evaluable dataset claim. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
+
+Listing-history record references independently pin a fresh literal listing-key
+receipt/observation/listing byte-and-hash chain. Reopened histories exercise rename,
+delist, late correction, empty replacement, negative provenance, ticker reuse and
+multiple venues under existing effective/decision cutoffs. Tests cover all supplied
+version mismatches, exact interval text/order, offset and DST semantics, standard
+endpoint type/fold normalization, strict nested field/type/schema/policy/canonical
+tampering and every selected dependency failure. Valid changed interval/reference
+assertions remain distinct and do not claim source parsing authentication.
+Injected creation/write/close/verify/link and post-link cleanup/directory-close
+failures retain archive publication/retry semantics. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+
+Membership-history record references pin fresh literal receipt/metadata/membership
+bytes and hashes with an exact whitespace/colon universe suffix. Reopened temporal
+cases cover entry/exit, late corrections, empty replacements with negative
+provenance and security/source/universe isolation. Cross-module references reopen
+listing records and apply independent release cutoffs, preserving unresolved
+delisted members despite ticker reuse and later mapping corrections. Tests cover
+every supplied-version/universe mismatch, valid new assertions, ordered intervals,
+offset/fold/gap/subclass boundaries, forbidden listing fields, strict schema/types/
+canonical bytes, dependency corruption and pre/post-publication faults. These
+mechanical references prove neither source parsing nor real-world universe
+completeness. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
+Universe-listing replay references pin independent literal artifact bytes/hash,
+dependency IDs and selected interval indices, then reopen a fresh archive. Cases
+cover independent release/correction cutoffs, selected negatives/empty per-key
+replacements, missing versus selected-negative mappings, unresolved delistings,
+ticker reuse and equal symbols on distinct stable IDs. Original unsorted tuple
+indices, full key/version association, exact filters, immutable sorted membership,
+empty collections and scalar UTC/timezone/fold/gap/overflow boundaries are tested.
+Both whole catalogs reject future/irrelevant contradictions before filtering.
+Strict schema/report/type/order/canonical tampering and statically impossible
+reports reject before dependency reads where possible; recomputed equality catches
+semantic report drift. Every missing/corrupt graph node and wrong-typed reference
+fails without partial joins, fallback or repair. Dependency-first and injected
+pre/post-publication faults preserve archive retry semantics. Valid changed
+queries/dependencies with correct reports remain new assertions, not proof of
+source truth or complete research reproducibility. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
+
 Adapters must still authenticate provenance and prove identity and complete source
-history scope. The local archive persists exact payloads and raw receipt assertions/
-outcomes; it does not implement a quarantine queue/reprocessing workflow or validated
-metadata catalogs. Provider coverage/completeness, derived lineage, target processing,
-holdout access control, backtest correctness, and financial invariants remain
-**unimplemented** and must not be marked complete.
+history scope. The local archive persists exact payloads, raw receipt assertions/
+outcomes, individually linked version assertions and explicit metadata inventories;
+it does not implement a quarantine queue/reprocessing workflow. Provider
+coverage/completeness, derived lineage, target processing,
+holdout access control, complete backtest correctness and broader platform
+financial invariants remain future enforcement and must not be marked complete.
+The bounded reference ledger below enforces only its approved arithmetic model.
 
 Before M1 acceptance, independent cases must exercise unknown availability quarantine, revisions, effective-dated mappings, and universe joins. Before M3 acceptance, exercise [target reference cases](decisions/0004-target-exposures.md), future-trained artifacts and preprocessors, and [holdout lifecycle failures](research-protocol.md). Before M7 acceptance, prove operational consumers cannot fall back to historical-only availability or bypass the independent risk gate. Documented scenarios must become executable tests in the owning milestone; prose alone does not satisfy these gates.
+
+## Locked-toolchain replay references
+
+Development-verifier tests pin independent literal canonical input bytes/hash
+and strict marker/lock/wheel identity cases. Minimal ZIP fixtures exercise parsing
+only and are never installed or evidence of real lock completeness. Missing,
+extra, duplicate, unsafe or incompatible wheels, contradictory filename/metadata/
+WHEEL tags, changed lock/local hashes and source-lock disagreement fail preflight.
+Manifest tampering, seeded/editable/duplicate inventories, process failures,
+incorrect import/platform provenance, zero tests, staged/input mutation and
+publication failures prevent success. Process doubles test sequencing only;
+executable isolated probes exercise the observation code and explicit development
+script imports from outside the checkout without adding source paths. A real uv
+dry-run of the generated consumer flags checks CLI compatibility without
+installing a synthetic unit wheel; the mutually exclusive build aliases cannot
+be combined. This probe is not complete replay acceptance.
+
+The complete positive case is the separate CI verifier invocation after real
+hash-verified wheel materialization and package build: capture/read back, fresh
+unseeded offline install, exact inventory/`pip check`, installed imports and the
+actual test suite, then postchecks/report publication. It is never recursively
+invoked from that suite. Existing `verify_hash_install.py` CLI/negative checks
+remain unchanged. Run `mypy scripts/verify_toolchain_replay.py` in addition to the
+mandatory source check. No complete experiment reproducibility, bootstrap
+security, durable retention or CI success is inferred from unit doubles or this
+configured workflow; see [ADR 0019](decisions/0019-offline-toolchain-replay.md).
+
+## Target quantity and lifecycle references
+
+`strategies.targets` cases independently specify A .10/B .20 replaced by A .05,
+stream isolation, explicit zero/active empty distinctions, future decisions,
+half-open expiry and latest-expired selection without fallback. Tests cover every
+expected context field, per-role snapshot identity, global future batch conflicts/
+decision ties, normalized retries retaining first assertions and immutable input
+snapshots. Decimal validation exercises explicit units/types, sNaN/NaN/infinity,
+huge exponents and ambient precision/traps without arithmetic or rescaling.
+Real-time cases cover equivalent offsets, keyed-zone reproduction, folds, gaps,
+unsupported scalar/container values and UTC overflow. Direct selections validate
+correspondence and derive status/targets but do not prove latest history selection.
+Cross-module references keep source/operational availability distinct and show
+that a retained replay digest is only a caller snapshot assertion here. These
+cases do not verify source truth, actual target arrival/current portfolio, sizing,
+allocation, accounting or strategy performance. See
+[ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md).
+
+## Reference ledger verification
+
+The [five independent scenarios](m2-reference-ledger-v1.md) at the
+[approved baseline](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+remain unchanged; executable contract cases assert their literal balances,
+held/unsettled/sellable shares, obligations and equity. References cover buy-fee
+recognition, distinct partial fills/settlements, cash reservation, unsettled-share
+rejection, idempotent old retries, conflicts, equal-time ordering and complete
+same-instant valuation. Additional cases exercise cash reservations across
+securities and per-security sellability, no financing from unsettled proceeds,
+permanent fill IDs, zero-net open sales,
+fully sold/zero-equity/zero-opening states and settlement neutrality.
+
+Negative cases cover every identity field/cross-kind collision, rejected-ID reuse,
+new-event ordering, units/currency/standard integer/record/container boundaries,
+immutable inputs/derived-only outputs and full replay rejection without partial
+success. UTC offsets/folds/gaps, keyed-zone reproduction and overflow preserve
+real instants. Valuations neither cache marks nor advance/register accounting
+state; source availability and target conversion remain separate boundaries.
+These inputs assert reference facts, not actual fills or provider-backed prices.
+Financial approval, local executable references, independent review and
+exact-revision CI are distinct. Their [recorded evidence](m2-reference-ledger-evidence.md)
+closes only M2's reference-ledger scenario gate; all M1/M3 and remaining M2 gates
+stay open, with M1 active.
+New financial choices still require the approval listed below.
 
 ## Pull request acceptance
 - Small, coherent task and explicit non-goals.

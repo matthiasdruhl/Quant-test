@@ -14,7 +14,7 @@ Create a correct, auditable, reproducible quantitative equity research platform.
 - If blocked, report exactly what is missing; do not invent successful outcomes.
 
 ## Open-source-first dependency policy
-- Read [ADR 0012](docs/decisions/0012-open-source-first-dependency-strategy.md) and [dependency evaluation](docs/dependency-evaluation.md) before proposing a new implementation for backtesting, storage, analytics, research tooling, AI agents, or broker connectivity.
+- Read [ADR 0020](docs/decisions/0020-open-source-first-dependency-strategy.md) and [dependency evaluation](docs/dependency-evaluation.md) before proposing a new implementation for backtesting, storage, analytics, research tooling, AI agents, or broker connectivity.
 - First compare maintained and appropriately licensed open-source solutions. Record adopt/wrap/build/defer, concrete rejected alternatives, costs, test evidence, and exit/migration risks. Do not introduce dependencies based on popularity or undocumented assumptions.
 - Do not create a bespoke backtesting engine by default or install Qlib, LEAN, RD-Agent, OpenBB, MLflow, or another candidate without the evidence-based selection gate and an approved dependency change.
 - Preserve all implemented temporal, universe, archival, and contract tests until independently verified replacement parity, with a reviewed migration. Do not treat sunk implementation cost as a selection argument.

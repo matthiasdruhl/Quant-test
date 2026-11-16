@@ -1,13 +1,13 @@
 # Architecture
 
 **Status:** design baseline with implemented `core.time` and `data` primitives
-described below. The research, backtest, strategies, intelligence, portfolio, and
-execution packages contain only docstrings reserving future module boundaries.
+described below, the narrow `strategies.targets` quantity/lifecycle boundary and
+`backtest.reference_ledger`. Research, intelligence, portfolio and execution
+contain only boundary docstrings; strategy runners and fill simulation remain future.
 Review architectural changes through ADRs. M1 is the active milestone; its
 acceptance gates remain open in the [roadmap](roadmap.md#m1--point-in-time-market-data).
-[ADR 0012](decisions/0012-open-source-first-dependency-strategy.md) establishes
-an open-source-first policy for **future** implementations; it does not approve
-new dependencies, invalidate M0/M1 evidence, or change any runtime behavior.
+[ADR 0020](decisions/0020-open-source-first-dependency-strategy.md) establishes
+an open-source-first policy for future implementation. Each dependency requires its own approval.
 
 ## Mission
 Long-lived, research-first U.S. equities platform for swing strategies and eventually paper/live execution. The platform is a **modular Python monolith** with narrow contracts, not a distributed system.
@@ -16,8 +16,8 @@ Long-lived, research-first U.S. equities platform for swing strategies and event
 - `core`: aware timestamps, identifiers, immutable domain contracts.
 - `data`: ingestion, security master, corporate actions, point-in-time sources, lineage.
 - `research`: feature computation, experiment metadata, validation, immutable results.
-- `backtest`: a narrow adapter to the **selected and independently validated** event scheduling, fill simulation, accounting, and cost engine (candidate evaluation pending).
-- `strategies`: pure strategy functions from available observations to desired exposures.
+- `backtest`: explicit-fill reference accounting and, after engine evaluation and independent validation, a narrow adapter for simulation.
+- `strategies`: immutable target quantity and lifecycle contracts, with pure strategy functions planned.
 - `intelligence`: macro, company events, SEC filings, later licensed alternative data.
 - `portfolio`: account constraints, net exposures, candidate allocations, deterministic risk vetoes.
 - `execution`: future paper/live adapters, order idempotency, reconciliation, safety stop.
@@ -42,14 +42,14 @@ Evaluate DuckDB/Parquet for curated datasets, existing provider integrations suc
 as OpenBB or licensed APIs, and existing research/ML/experiment tooling before
 custom development. RD-Agent is a future *candidate* for bounded research assistance
 **after** a deterministic baseline exists. New runtime dependencies remain absent
-pending evaluation and review. See the [decision record](decisions/0012-open-source-first-dependency-strategy.md)
+pending evaluation and review. See the [decision record](decisions/0020-open-source-first-dependency-strategy.md)
 and [candidate scorecard/experiments](dependency-evaluation.md).
 
 ## Dependency direction
 - `core` imports no platform modules.
 - `data` and `intelligence` depend on `core`, not on trading execution.
 - `strategies` depend on stable domain contracts, not broker SDKs, databases, or web calls.
-- `research` and `backtest` integrate selected external frameworks via narrow adapters while preserving data, strategy, and domain contracts.
+- `research` and `backtest` compose data, strategy, and domain contracts. Future integrations use narrow adapters to preserve those contracts.
 - `portfolio` consumes targets and known account state; never trusts a model's self-reported limits.
 - `execution` accepts only pre-vetted orders. Research agents have no order permissions.
 - Avoid cycles. An adapter may translate external records into core contracts; core never imports adapters.
@@ -87,7 +87,7 @@ strict versioned codec preserves raw precision, text, timezone key/offset/fold,
 and recomputes the named admission policy. This persists accepted and quarantined
 assertions under ADR 0009's filesystem/failure assumptions; it does not create
 validated observation versions or authenticate evidence. Provider ingestion,
-operational processing, metadata catalogs and dataset snapshots remain
+operational processing, provider-backed catalog acceptance and dataset snapshots remain
 unimplemented. See [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 `data.receipt_sets` inventories an explicit sorted collection of receipt digests
@@ -99,6 +99,25 @@ promotion or an evaluable dataset snapshot. Empty collections explicitly report
 zero counts. Existing publication/failure assumptions apply; see
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
 
+`data.observation_records` persists explicit `ObservationVersion` assertions linked
+to an existing accepted admission receipt. The archive verifies receipt/payload
+dependencies and all shared identity, provenance and UTC instants before publishing
+metadata last, then repeats those checks on reopen. The supplied version is never
+derived from an accepted receipt alone. Canonical metadata timestamps use UTC while
+raw receipts retain original representations. This adds individual metadata
+retention, without source authentication, validated promotion
+or a dataset snapshot. See
+[ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
+`data.catalog_inventories` persists explicit sorted observation-record membership.
+It reopens every selected metadata/receipt/payload dependency and validates the
+combined versions through existing catalog identity/rank/availability rules.
+Frozen results retain record and receipt provenance and reconstruct a fresh
+historical `VersionCatalog`. The canonical manifest is published last with existing
+archive failure limits. It supplies no discovery, provider authenticity, coverage,
+decision/query scope or evaluable dataset snapshot. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
+
 `data.listings` adds an in-memory source-specific historical listing catalog.
 Complete replacement histories bind stable security IDs to effective-dated
 issuer/symbol/venue/currency intervals, including ended/delisted intervals. Queries
@@ -106,6 +125,15 @@ select the historically eligible metadata revision before filtering effective
 time and retain selected provenance even when no interval matches. This is not
 a complete security master or coverage guarantee;
 see [ADR 0007](decisions/0007-historical-security-listings.md).
+
+`data.listing_records` retains one explicit complete listing history against an
+existing observation-record digest. The supplied full version must match through
+the public metadata normalization boundary; interval text and tuple order remain
+exact. Reopen verifies metadata/receipt/payload dependencies and reconstructs the
+existing `ListingHistory` invariants. This preserves assertions and query
+provenance, without proving source parsing, completeness or identity. Individual
+listing records supply no global catalog index. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
 
 `data.universes` adds source-specific complete replacement membership histories
 per stable security/universe. Historical membership queries retain both asserted
@@ -115,7 +143,72 @@ delisted members, and reports unresolved mappings explicitly. It establishes no
 provider coverage or universe completeness; see
 [ADR 0008](decisions/0008-point-in-time-universe-membership.md).
 
-Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); portfolio conversion and accounting remain unimplemented.
+`data.membership_records` retains one explicit per-security/source/universe history
+against matching observation metadata. Full supplied-version correspondence uses
+the public metadata normalization boundary; ordered intervals and the complete
+universe-ID suffix remain exact. Reopen verifies metadata, accepted receipt and
+payload before reconstructing the current membership contract. Reopened histories
+join independently selected listing histories without dropping delisted or
+unresolved members. This adds no source authentication, universe completeness or
+provider-backed acceptance. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
+`data.universe_listing_replays` pins explicit sorted listing/member record sets
+and exact historical universe/source/venue/E/D scope. It reopens every dependency,
+validates both whole catalogs before filtering, computes the existing stable-ID
+join and requires exact canonical report equality. Selected history digests and
+original tuple indices retain negative as well as positive context; unresolved
+members remain explicit. The result is computed only, not caller-supplied. This
+adds one consumer assertion artifact without source authentication, code/config/
+environment collection or an evaluable dataset snapshot. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
+
+Research registration and holdout consumption follow the [research protocol](research-protocol.md). These remain design contracts until M3 implements their persistent enforcement. Target exposures follow the [strategy contract](strategy-contract.md); target-to-portfolio conversion and broader accounting remain future; the bounded
+reference ledger is described below.
+
+The development-only `scripts/verify_toolchain_replay.py` consumes real locked
+wheel bytes and a built local package to verify one fresh offline toolchain.
+It pins actual inputs/host observations/clean source, runs installed-package tests
+and publishes an input manifest plus success report using the existing archive.
+This adds no runtime environment service, complete experiment manifest or durable
+CI retention; see [ADR 0019](decisions/0019-offline-toolchain-replay.md) and
+[environment replay](environment.md#full-locked-toolchain-offline-replay).
+
+## Target quantity and lifecycle boundary
+
+`strategies.targets` implements only immutable explicitly long-only target
+proposals, full expected caller-context matching and pure per-stream lifecycle
+selection under [ADR 0018](decisions/0018-immutable-target-batch-lifecycle.md).
+Required Decimal fractions are neither rescaled nor converted to holdings.
+Whole histories validate IDs, decision ties and per-role snapshot consistency
+before querying; latest decision selection precedes expiry and never falls back.
+Selected provenance distinguishes no batch, active empty and expired assertions.
+Snapshot identities/usability and decision timelines are caller assertions, not
+source lineage, actual batch arrival, operational receipt or current portfolio
+proof. The broader signed strategy-output design remains future, as do strategy
+runners, allocation, limits, valuation for target conversion, orders and
+accounting conversion.
+
+## Reference accounting boundary
+
+`backtest.reference_ledger` implements the bounded explicit-fill model under the
+[recorded exact-revision owner approval](decisions/0017-explicit-reference-ledger.md#recorded-owner-approval)
+and [independent reference specification](m2-reference-ledger-v1.md).
+Frozen opening/fill/settlement facts are the only ledger inputs; replay derives
+all balances, whole-fill obligations, positions and identity state. Exact event
+retries precede time/type-specific transition checks, equal-time input order
+remains explicit, and rejection cannot mutate prior state. Buy cash reservations
+and unsettled-share restrictions follow that approved model without inferring
+settlement dates or financing from sale receivables.
+
+`LedgerValuation` requires a complete explicit same-instant mark set and derives
+equity without injecting totals, caching marks or advancing the event cursor.
+These are arithmetic reference assertions, not actual trades, source availability
+or authenticated prices. Target conversion, broader allocation/accounting,
+corporate actions, simulation, strategies and broker/order paths remain future.
+The [exact-revision evidence](m2-reference-ledger-evidence.md) closes only M2's
+reference-ledger scenario gate. M1 remains active; all M1/M3 and remaining M2
+gates stay open.
 
 ## Execution boundary
 Research, paper, and eventual live modes share strategy logic and risk policy contracts but **do not share credentials, mutable account state, or unapproved deployment paths**. Live mode does not exist in the scaffold. A future live implementation needs explicit owner authorization, external reconciliation, independent kill switch, and negative-path tests.
