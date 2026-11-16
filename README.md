@@ -4,6 +4,10 @@ A long-term, **research-first** quantitative equities platform. Initial focus: r
 
 > **Status:** M0 is complete on the [recorded evidence](docs/m0-evidence.md). M1 is active: temporal data contracts, historical catalogs, raw payload/receipt storage with quality counts, receipt-linked metadata/history records, immutable version-catalog inventories and historical universe-listing replay are implemented. All M1 acceptance gates remain open. No trading strategy, backtesting engine, brokerage integration, or live execution is implemented. Nothing here establishes a profitable trading edge.
 
+## Open-source-first architecture direction (ADR 0020)
+
+Our [build-versus-reuse decision](docs/decisions/0020-open-source-first-dependency-strategy.md) makes mature, validated open-source components the default for simulation, research, data integration, and analytics. Engine selection and dependency approval are pending. The [dependency evaluation plan](docs/dependency-evaluation.md) calls for comparing Qlib with LEAN on identical fixtures and evaluating RD-Agent after a reliable non-agent baseline. Existing temporal, holdout, and risk requirements apply throughout the evaluation. The plan requires parity tests before replacing raw archive or receipt components.
+
 ## Design priorities
 
 1. **Point-in-time correctness** — no future information or survivorship bias.
@@ -16,9 +20,9 @@ A long-term, **research-first** quantitative equities platform. Initial focus: r
 
 0. Contracts, governance, and CI
 1. Historical data and security master
-2. Backtesting and accounting
-3. Strategy baselines and statistical evaluation
-4. Codex/Claude research agents
+2. Select, integrate, and independently validate a backtesting/accounting engine (reuse-first)
+3. Strategy baselines and statistical evaluation using established research tooling
+4. Evaluate existing AI research agents and only build missing, bounded orchestration
 5. Macroeconomic and verified event intelligence
 6. Insider, 13F, and public financial disclosure intelligence
 7. Paper execution, reconciliation, and independent risk gates
@@ -34,7 +38,7 @@ src/quant_test/
   core/          # Implemented timestamp availability checks
   data/          # Temporal catalogs, archive, receipts, linked metadata records
   research/      # Planned: features, experiment registry, evaluation
-  backtest/      # Explicit-fill reference ledger; simulation remains planned
+  backtest/      # Explicit-fill reference ledger; simulation engine evaluation planned
   strategies/    # Long-only target batches/lifecycle; strategy runners planned
   intelligence/  # Planned: macro, filings, news, alternative data
   portfolio/     # Planned: allocation and risk decisions
