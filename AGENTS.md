@@ -45,3 +45,7 @@ Create a correct, auditable, reproducible quantitative equity research platform.
 
 ## PR review
 Reject changes with missing provenance, invented performance, unvalidated temporal joins, weakened tests, unjustified dependency growth, or executable trading paths lacking explicit authorization.
+
+## Bounded agent development workflow
+
+For implementation tasks involving multiple steps or agents, follow [the agentic verification graph](docs/agentic-development-graph.md). Use independent test design and review, a maximum of three repair loops, project-specific validation gates, and human-controlled merges. This does not authorize unattended agent execution or product actions.
