@@ -7,6 +7,11 @@ rights are unverified; ingestion is not approved.
 catalogs. No provider data was fetched, account accessed, or adapter implemented.
 All [M1 gates](../roadmap.md#m1--point-in-time-market-data) remain open.
 
+**Owner context, 2026-11-10:** the owner reports no existing provider/dataset
+entitlement for research and archival use. This records the owner's stated access
+context, not a conclusion about a vendor's legal terms. Source selection and usage
+rights remain open; no acquisition or integration is approved by this record.
+
 ## Scope and rationale
 
 Proposed first slice: listing identities and listing/delisting changes for a small,

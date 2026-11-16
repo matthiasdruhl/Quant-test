@@ -107,7 +107,7 @@ completed processing. See [ADR 0006](decisions/0006-raw-availability-admission.m
 
 For each security/source/observation key, select the latest version eligible at the decision cutoff, never the latest version in today's database. Keep revisions immutable. Define a source-specific revision order and explicit tie-breaker; ambiguous duplicates, contradictory ordering, and unsupported retractions fail validation rather than selecting arbitrarily. Identifier mappings and universe membership must use their own effective dates and historically eligible versions. M1 must exercise revisions and temporal joins with independent fixtures.
 
-`data.versions` implements only the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. Quarantine processing workflows, source-order proof, provider ingestion, coverage/completeness and validated metadata persistence remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a selected metadata version alone is not an evaluable dataset.
+`data.versions` implements the in-memory historical selection rule for validated metadata. Its source-assigned integer revision ranks, uniqueness checks, and tie-break rule are specified in [ADR 0005](decisions/0005-observation-revision-selection.md). `data.admission` adds in-memory raw admission/quarantine results, `data.listings` adds effective-dated listing lookup, and `data.universes` adds membership and its stable-ID listing join. `data.raw_archive` persists exact payload bytes and `data.receipts` adds raw admission/quarantine receipts as described below. `data.observation_records` adds individual receipt-linked metadata assertions; `data.catalog_inventories` retains explicit collections validated against the existing selector rules. Quarantine processing workflows, source-order proof, provider ingestion and coverage/completeness remain M1 work. Raw envelopes and admission results cannot enter the catalogs directly; a metadata inventory alone is not an evaluable dataset.
 
 ### Local raw payload archive
 
@@ -138,9 +138,10 @@ retry verifies the complete existing object but does not clear stale staging fil
 
 The caller controls the trusted root, permissions and capacity, and must exclude
 hostile/concurrent mutation except cooperating no-replace publishers. This supports
-local POSIX filesystem semantics only. No `fsync`, crash durability, recovery,
-garbage collection, source/tenant isolation, validated metadata catalogs or
-dataset manifests are provided. Raw receipt persistence is the separate extension below. Read-only file permissions are not tamperproofing.
+local POSIX filesystem semantics only. The payload API provides no `fsync`, crash
+durability, recovery, garbage collection, source/tenant isolation or dataset
+manifest. Separate receipt, metadata and inventory extensions follow below.
+Read-only file permissions are not tamperproofing.
 See [ADR 0009](decisions/0009-local-raw-payload-archive.md) for the storage rationale,
 failure semantics and acceptance limits.
 
@@ -183,7 +184,8 @@ linking can raise with a complete receipt already visible; retry verifies existi
 content. No crash durability or multi-object crash transaction is promised. Receipt
 retention authenticates neither evidence nor source/license claims, does not grant
 historical catalog eligibility, and does not record completed processing. Provider
-ingestion, quarantine queues/reprocessing, validated metadata catalogs, coverage reports and reproducible dataset snapshots remain unimplemented. See
+ingestion, quarantine queues/reprocessing, provider-backed catalog acceptance,
+coverage reports and reproducible dataset snapshots remain unimplemented. See
 [ADR 0010](decisions/0010-persisted-raw-admission-receipts.md).
 
 ### Explicit raw receipt sets and quality counts
@@ -230,6 +232,271 @@ This is an inventory of raw assertions, without decision cutoff, revision select
 validated metadata promotion, processing evidence, transform/code/environment pins,
 source authentication or evaluable dataset snapshot. See
 [ADR 0011](decisions/0011-raw-receipt-set-quality-report.md).
+
+### Receipt-linked observation-version records
+
+`data.observation_records.ReceiptLinkedVersion(version, receipt_sha256)` retains
+an explicit supplied `ObservationVersion` and an existing raw receipt reference.
+Direct construction/encoding validates shape only. A version is never inferred
+from an accepted receipt. `build_observation_record(archive, version, receipt_sha256)`
+reopens the exact receipt and its payload, requires accepted admission, and matches
+key, version ID, exact source URI/license text, payload digest and all four
+availability fields. Unknown event time matches only unknown event time. Source
+revision rank remains an explicit caller assertion; linkage authenticates neither
+that rank nor source, identity, license or timestamp evidence.
+
+This boundary requires standard datetimes with UTC, standard fixed offsets or
+reopenable keyed `ZoneInfo` rules. Civil times must survive a UTC roundtrip before
+normalization; gaps reject and valid folds retain distinct instants. Zone keys must
+reproduce offset/name. Out-of-range UTC conversion rejects as `ValueError`.
+Equivalent representations of one real instant are accepted. The returned version
+uses UTC with `fold=0`, while the raw receipt retains original representations.
+Ranks must be standard nonnegative `int` values: bool, float and integer subclasses
+reject at this boundary, without changing the existing in-memory constructors.
+
+`encode_observation_record` produces schema-1 canonical ASCII JSON with the full
+version fields, receipt digest and `receipt-linked-observation-v1` policy ID.
+Timestamps use UTC with six fractional digits and `Z`; only `event_at` may be null.
+`decode_observation_record(payload, archive)` rejects duplicate/unknown/missing
+fields, unsupported schemas/policies/types, alternate timestamp spellings and
+noncanonical bytes, then repeats all dependency/linkage checks. Rehashed edits
+cannot conceal mismatches. The literal schema fixture is
+`tests/fixtures/observation-record-v1.json`.
+
+`LocalRawArchive.put_observation_record(version, receipt_sha256) -> str` verifies
+existing dependencies before publishing one metadata object last, returning its
+separate digest. `get_observation_record(digest)` verifies the object and every
+dependency before returning. Neither creates receipts/payloads nor records
+processing completion. Existing `put_version/get_version` still address payloads.
+`ObservationRecordFormatError` is a standalone codec `ValueError`;
+`ObservationRecordMissingError`/`ObservationRecordCorruptError` are archive-load
+errors under `RawArchiveError`. Referenced receipt/payload/filesystem failures
+propagate unchanged. Put retains existing base publication error types.
+
+The caller retains record digests; the individual-record API provides no index,
+discovery or dataset snapshot. Explicit catalog inventories are the separate
+extension below. ADR 0009's trusted POSIX, no-replace and pre/post-link
+failure/retry limits apply, including no crash durability or cleanup recovery.
+See [ADR 0012](decisions/0012-receipt-linked-observation-records.md).
+
+### Explicit version-catalog inventories
+
+`data.catalog_inventories.VersionCatalogManifest(observation_record_sha256s)`
+accepts built-in tuples/lists and snapshots distinct lowercase record digests into
+sorted immutable order. All entries and duplicates validate before dependency
+reads. `build_version_catalog_inventory(archive, observation_record_sha256s)`
+requires a `LocalRawArchive` even for empty membership, reopens every selected
+record through `get_observation_record`, and returns a frozen
+`VersionCatalogInventory(manifest, records)`. Records must be an immutable tuple
+in manifest digest order and reproduce every manifest digest exactly.
+
+All selected versions jointly satisfy `VersionCatalog` rules: duplicate version
+IDs/ranks within one key and revision availability contradicting rank reject.
+Identical payloads/receipts never merge distinct metadata assertions. Independent
+keys may reuse IDs/ranks. `inventory.to_catalog()` reconstructs a fresh selector
+using existing inclusive historical release cutoffs and rank tie-breaking;
+backfill ingestion does not shift those cutoffs. Original record/receipt provenance
+remains on the inventory. Neither construction nor selection authenticates it.
+
+`encode_version_catalog_inventory` produces schema-1 canonical ASCII JSON containing
+only the manifest, schema and `observation-version-catalog-v1` policy ID. Record
+bodies remain dependencies. The encoder checks no archive.
+`decode_version_catalog_inventory(payload, archive)` rejects unsupported types,
+schemas/policies, duplicate/unknown/missing fields, unsorted/duplicate membership
+and noncanonical bytes before dependency reads where possible. It then reloads
+every dependency, revalidates catalog rules and requires exact canonical bytes.
+The literal fixture is `tests/fixtures/version-catalog-inventory-v1.json`.
+
+`LocalRawArchive.put_version_catalog_inventory(digests) -> str` verifies all
+dependencies before publishing the manifest last and creates no observation,
+receipt or payload. `get_version_catalog_inventory(digest)` verifies the inventory
+and its complete selected dependency graph. Standalone malformed/inconsistent
+metadata raises `VersionCatalogInventoryFormatError`, a `ValueError`; inventory
+loads distinguish `VersionCatalogInventoryMissingError` and
+`VersionCatalogInventoryCorruptError` under `RawArchiveError`. Dependency errors
+propagate unchanged; no partial result, fallback, removal or repair is returned.
+Existing trusted-POSIX and pre/post-publication failure/retry limits apply.
+
+Callers retain inventory digests; there is no global index/discovery. An explicit
+empty inventory includes no unmentioned objects and proves no source absence or
+coverage. The manifest carries no decision/effective query scope, code/config/
+environment pins, transform lineage, processing evidence or completeness report.
+It is not an evaluable dataset snapshot. See
+[ADR 0013](decisions/0013-version-catalog-inventories.md).
+
+### Persisted listing-history assertions
+
+`data.listing_records.ListingHistoryRecord(history, observation_record)` requires
+an explicit `ListingHistory` and `ReceiptLinkedVersion`. The supplied history's
+full version is normalized through the public ADR 0012 metadata boundary and its
+canonical observation-record bytes must match the referenced record, including
+rank, key, provenance and all timestamps. This does not discard a different
+supplied version or infer a version from admission. Returned records retain both
+the normalized history and exact metadata/receipt provenance.
+
+Intervals are revalidated through existing public listing constructors. Exact
+issuer/symbol/venue/currency/end-reason text and the caller's interval tuple order
+are preserved. The fixed `listing-history` key, all-venue complete replacement,
+UTC half-open intervals, no overlaps per security/venue and explicit empty
+replacement semantics remain unchanged. The interval constructor has already
+normalized original zones to UTC; persistence does not recover those original
+representations. At this narrower codec boundary, endpoints must be standard UTC
+datetimes and normalize `fold=0`. Their canonical strings use six fractional
+digits and `Z`. Existing in-memory constructors are unchanged.
+
+`build_listing_history_record(archive, history, observation_record_sha256)`
+verifies the existing observation record, accepted receipt and exact payload
+before version correspondence checks. `encode_listing_history_record` writes
+schema-1 canonical ASCII JSON with `receipt-linked-listing-history-v1`, the pinned
+observation-record digest and ordered interval fields; the version remains in its
+content-addressed dependency. Direct construction/encoding validates assertions,
+not dependency existence or source truth.
+`decode_listing_history_record(payload, archive)` strictly parses schemas/policies,
+field sets, duplicate keys, types, canonical UTC spellings and bytes, then verifies
+dependencies and reconstructs the complete history. The literal reference chain
+is `tests/fixtures/listing-receipt-v1.json`, `listing-observation-record-v1.json`
+and `listing-history-record-v1.json`.
+
+`LocalRawArchive.put_listing_history_record(history, observation_record_sha256)`
+publishes one listing assertion last and returns its digest, creating no metadata,
+receipt or payload. `get_listing_history_record(digest)` verifies the exact listing
+record and every dependency. `ListingHistoryRecordFormatError` is the standalone
+codec `ValueError`; archive loads distinguish `ListingHistoryRecordMissingError`
+and `ListingHistoryRecordCorruptError` under `RawArchiveError`. Dependency errors
+propagate unchanged. Existing no-replace, pre/post-link failure and retry limits
+apply without crash durability, recovery, fallback or repair.
+
+Valid changed intervals/order or a reference to another fully valid listing
+version create new assertions. Their hashes do not prove parsing from raw bytes,
+complete source scope or truthful identity. Conflicting histories may reference
+one version; the replay collection boundary below rejects conflicting identities.
+Callers retain listing digests. Individual records add no catalog index, coverage
+report, provider acceptance or evaluable dataset snapshot. See
+[ADR 0014](decisions/0014-persisted-listing-history-records.md).
+
+### Persisted membership-history assertions
+
+`data.membership_records.MembershipHistoryRecord(history, observation_record)`
+requires an explicit `MembershipHistory` and `ReceiptLinkedVersion`. Supplied
+version assertions normalize through the public ADR 0012 boundary and must match
+the referenced metadata's full canonical bytes, including rank, key, provenance
+and all timestamps. The returned record retains the normalized history and exact
+metadata/receipt provenance; encoding cannot silently discard a different version.
+
+`universe_id` remains exact and nonblank. The existing `membership_observation_id`
+prefix is followed by the entire suffix, including colons and leading/trailing
+whitespace. There is no splitting, stripping, case normalization or ticker-derived
+identity. Existing constructors revalidate ordered UTC half-open intervals,
+non-overlap and complete replacement for one security/source/universe. Empty
+replacements retain negative provenance for that key without changing unmentioned
+securities. Membership intervals have no listing end-reason field or taxonomy.
+
+The interval constructor already normalized original zones to UTC. Persistence
+requires standard UTC datetime endpoints, normalizes `fold=0` and stores six
+fractional digits with `Z`; it does not recover or authenticate original zones.
+Tuple order stays in bytes. Existing in-memory interfaces remain unchanged.
+
+`build_membership_history_record(archive, history, observation_record_sha256)`
+verifies the exact existing metadata/accepted-receipt/payload chain before full
+version correspondence checks. `encode_membership_history_record` writes schema-1
+canonical ASCII JSON with `receipt-linked-membership-history-v1`, exact universe
+ID, metadata digest and ordered `effective_from`/nullable `effective_until` pairs.
+Direct construction/encoding proves neither dependency existence nor source truth.
+`decode_membership_history_record(payload, archive)` rejects unsupported schemas/
+policies/types, unknown/missing fields, duplicate keys, noncanonical UTC strings
+and bytes, then verifies dependencies and reconstructs the full universe-key
+contract. The literal reference chain is `tests/fixtures/membership-receipt-v1.json`,
+`membership-observation-record-v1.json` and `membership-history-record-v1.json`.
+
+`LocalRawArchive.put_membership_history_record(history, observation_record_sha256)`
+publishes one membership assertion last and returns its digest. It creates no
+metadata, receipt or payload. `get_membership_history_record(digest)` verifies the
+object and all dependencies. `MembershipHistoryRecordFormatError` is the
+standalone codec `ValueError`; archive loads distinguish
+`MembershipHistoryRecordMissingError` and `MembershipHistoryRecordCorruptError`
+under `RawArchiveError`. Dependency errors propagate unchanged with no partial
+result, fallback or repair. Existing trusted-POSIX, no-replace and pre/post-link
+failure/retry limits apply without crash durability or recovery.
+
+Valid changed intervals/reference or a jointly changed universe and matching
+reference are new assertions; hashes do not authenticate parsing, source scope or
+rights. Reopened histories compose with existing universe/listing catalogs using
+independent release cutoffs and stable IDs, preserving delisted/unresolved members
+and selected negative mapping provenance. Individual membership records supply
+no catalog index, provider acceptance, coverage report or evaluable dataset
+snapshot; the consumer replay boundary follows below. See
+[ADR 0015](decisions/0015-persisted-membership-history-records.md).
+
+### Historical universe-listing replay assertions
+
+`data.universe_listing_replays.UniverseListingReplayManifest` accepts explicit
+built-in tuple/list `listing_history_record_sha256s` and
+`membership_history_record_sha256s`, validates all lowercase digests/duplicates
+before reads, snapshots and sorts them into immutable tuples. It also requires
+exact nonblank `universe_id`, `membership_source_id`, `listing_source_id`, `venue`,
+`effective_at` and `decision_at`. The universe helper preserves the entire exact
+suffix. Query instants require standard aware datetimes with UTC, standard fixed
+offsets or reopenable keyed ZoneInfo reproducing offset/name. Civil gaps reject
+before UTC normalization, valid folds remain distinct, and unsupported date/
+datetime/tzinfo values or UTC overflow raise `ValueError`. Times normalize to UTC
+with fold zero and require effective time no later than decision time. Existing
+in-memory query contracts are unchanged.
+
+Frozen `UniverseListingReplay(manifest, listing_records, membership_records)`
+requires immutable typed tuples in exact manifest digest order. It constructs
+existing listing/universe catalogs over every record, rejecting duplicate IDs/
+ranks or contradictory availability even for irrelevant/future histories before
+filtering. It computes `result: UniverseListingResult` through the existing join
+with the exact common query scope; result is `init=False`, never caller supplied.
+All records retain metadata/receipt provenance. Direct construction/encoding
+checks consistent assertions without archive existence or source authentication.
+
+`build_universe_listing_replay(archive, manifest)` loads every history through
+its typed get API, verifying the whole metadata/accepted-receipt/payload graph.
+Empty collections include no unmentioned data. An empty standalone build checks
+the archive argument type, not current filesystem liveness; put/get validate the
+root through outer archive I/O. No eligible supplied history and selected negative
+assertions remain distinct, without proving real-world absence or completeness.
+
+Schema 1 canonical compact sorted ASCII JSON uses
+`historical-universe-listing-replay-v1`, the complete manifest (six-fraction UTC
+`Z` times) and a computed report. `membership_selections` contains selected history
+digests and nullable zero-based `matched_interval_index` in stable-security order,
+including negatives. `listing_lookups` contains exact `security_id`, nullable
+selected listing digest and nullable interval index, one per asserted member.
+Indices address the original ordered history tuple. Null listing digest means no
+eligible supplied history; a selected digest with null index retains negative
+mapping provenance. Versions associate by full `(ObservationKey, version_id)`.
+Member/match/unresolved arrays and counts derive from the result, not redundant
+stored summaries. The literal `tests/fixtures/universe-listing-replay-v1.json`
+pins exact bytes/hash/dependency IDs and independently specified report.
+
+`encode_universe_listing_replay` writes the computed report;
+`decode_universe_listing_replay(payload, archive)` validates exact nested fields,
+strict types/nonnegative integer indices (not bool/float), duplicate keys,
+canonical timestamps/order/bytes before dependency I/O where possible. Selected
+digests must belong to the corresponding manifest without repeats; listing IDs
+must be unique/sorted and lookup count must equal matched membership count.
+Membership-row security order requires dependencies. Every history reopens,
+both catalogs/query recompute, and the whole canonical report must match. Missing,
+wrong-typed or corrupt dependencies prevent any partial result or fallback.
+
+`LocalRawArchive.put_universe_listing_replay(manifest)` publishes one canonical
+object last, creating no dependencies; `get_universe_listing_replay(digest)`
+verifies and recomputes it. `UniverseListingReplayFormatError` is a standalone
+`ValueError`; `UniverseListingReplayMissingError` and
+`UniverseListingReplayCorruptError` inherit `RawArchiveError`. Dependency history,
+metadata, receipt, payload and filesystem errors propagate unchanged. Existing
+no-replace, pre/post-link cleanup and verified retry semantics apply without
+repair, crash durability or recovery. Callers retain the digest.
+
+Valid changed scope/dependencies with a correct report form new assertions.
+Policy/report equality detects format/query drift, not authenticated source
+parsing, rights, completeness or executable/research reproducibility. This adds
+no code/config/environment pins, complete experiment collector, evaluable
+snapshot, market bars/actions/transforms, operational processing or strategy/
+execution behavior. All M1 gates remain open. See
+[ADR 0016](decisions/0016-historical-universe-listing-replay.md).
 
 ### Derived features and model artifacts
 Every derived output must pin input snapshot/version IDs, transform code and parameters, artifact ID/checksum (if any), and its actual computation/completion timestamp. Artifacts must record their release/first-usable time, training-data cutoff and snapshot IDs, fitted preprocessing/calibration, and tuning/selection lineage. Preprocessing and model fitting must use only the permitted training partition. Unknown training provenance makes an artifact ineligible for historical predictive evaluation; it may still produce explicitly labeled exploratory proposals.
